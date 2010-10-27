@@ -7,6 +7,7 @@ The initial release for versioning und logging of changes starts with v0.1.0
 Bug fixes, new features und updates for:
 
 Version 0.2.3
+- fix		: simplified installer
 - fix		: visual improvements
 - fix		: php-web - fixed customizing of 'drawday.php'
 - fix		: php-web - ownership and modes of file an dirs corrected
@@ -15,7 +16,9 @@ Version 0.2.3
 - new		: Requirements are now shown at the beginning of the install procedure
 - new		: Mysql server on other machines than 'localhost' is accepted
 - new		: added analyzer.php
-			  This script feeds parts of the collected data to Stephan Collets "SolarAnalyzer" program with which you can compare your solar array with others in your region.
+			This script feeds parts of the collected data to Stephan Collets
+			"SolarAnalyzer" program with which you can compare your solar array
+			with others in your region.
 
 
 Version 0.2.2
