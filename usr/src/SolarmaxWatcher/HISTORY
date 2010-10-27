@@ -7,14 +7,14 @@ The initial release for versioning und logging of changes starts with v0.1.0
 Bug fixes, new features und updates for:
 
 Version 0.2.3
-- fix    : installer - pathes corrected/improved
+- fix		: installer - pathes corrected/improved
 - fix		: installer - simplification
 - fix		: installer - visual improvements
 - fix		: installer - More variables moved to the introduction of the installer script
 - fix		: php-web - fixed customizing of 'drawday.php'
 - fix		: php-web - ownership and modes of file and dirs corrected
 - fix		: logger - Log-files moved to the common '/var/log/' directory
-- new    : installer - Note in case of non-localhost Mysql server
+- new		: installer - Note in case of non-localhost Mysql server
 - new		: installer - Requirements are now shown at the beginning of the install procedure
 - new		: installer - Mysql server on other machines than 'localhost' is accepted
 - new		: php-web - added analyzer.php
