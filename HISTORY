@@ -1,0 +1,40 @@
+************************************
+*** Solarmax Watcher - Changelog ***
+************************************
+
+The initial release for versioning und logging of changes starts with v0.1.0
+
+Bug fixes, new features und updates for:
+
+Version 0.2.3
+- fix		: installer - pathes corrected/improved
+- fix		: installer - simplification
+- fix		: installer - visual improvements
+- fix		: installer - More variables moved to the introduction of the installer script
+- fix		: php-web - fixed customizing of 'drawday.php'
+- fix		: php-web - ownership and modes of file and dirs corrected
+- fix		: logger - Log-files moved to the common '/var/log/' directory
+- new		: installer - Note in case of non-localhost Mysql server
+- new		: installer - Requirements are now shown at the beginning of the install procedure
+- new		: installer - Mysql server on other machines than 'localhost' is accepted
+- new		: php-web - added analyzer.php
+			This script feeds parts of the collected data to Stephan Collets
+			"SolarAnalyzer" program with which you can compare your solar array
+			with others in your region.
+
+
+Version 0.2.2
+- fix		: Installer will quit now, if not executed with root privilegs
+- fix		: web - lang.php was missing in the web-folder
+- fix		: logger - Codefix to reconnect immediately in case of connection interruptions
+- new		: logger - New parameter "Waitinterval" in config file
+
+Version 0.2.1
+- fix		: Install script - Password may now contain spaces
+- new		: logger - New parameters (DBhost and DBtabprefix) to be configured
+
+Version 0.2.0
+Start of development 2010-10-07
+
+- new		: logger - Configuration is no longer given by cmd-line arguments, but by a config file
+- new		: logger - In case of more than one inverter per array now only one logger process has to be started
