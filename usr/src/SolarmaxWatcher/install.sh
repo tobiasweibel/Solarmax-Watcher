@@ -2,7 +2,6 @@
 
 #some definitions
 conffile=/usr/local/etc/logger.conf
-sitehead=web-custom/sitehead.php
 tabelle=log       ## The Mysql DB tab-prefix
 db=solarmax       ## The Mysql DB name
 newuser=solaruser ## The Mysql DB user
@@ -11,6 +10,7 @@ instpath="${realpath%/*}"
 if [ "$instpath" = "." ]; then
   instpath=`pwd`
 fi
+sitehead=$instpath/web-custom/sitehead.php
 installerversion=`cat $instpath/HISTORY|grep -m 1 Version|cut -d' ' -f2`
 
 ######################################
@@ -46,6 +46,10 @@ echo -n -e "\n\n IP-address or hostname of your Mysql server [localhost]: "
 read dbhost
    if [ -z $dbhost ]; then
      dbhost=localhost
+   fi
+   if [ $dbhost != localhost ]; then
+     echo -e "\n Please secure, that the user 'root' may access the Mysql-server $dbhost from "
+     echo -e " external and that the regarding firewall rules and port forwardings are adjusted. \n"
    fi
    echo -n -e "\n Is the DB-host '$dbhost' correct? [y/n] "
    korrekt6(){
@@ -177,20 +181,20 @@ create_db(){
 
 ## compile logger and move into filesystem
 compile_logger(){
-  mkdir -p logger-bin
+  mkdir -p $instpath/logger-bin
   echo -n -e "\n Shall debugging be enabled? (y/n) [N] "
   read DEBUGENABLE
   case "$DEBUGENABLE" in
     y)
-      sed -e "s/define DEBUG 0/define DEBUG 1/" logger-src/logger.c > logger-src/logger-neu.c
+      sed -e "s/define DEBUG 0/define DEBUG 1/" $instpath/logger-src/logger.c > $instpath/logger-src/logger-neu.c
       ;;
     *)
-      sed -e "s/define DEBUG 1/define DEBUG 0/" logger-src/logger.c > logger-src/logger-neu.c
+      sed -e "s/define DEBUG 1/define DEBUG 0/" $instpath/logger-src/logger.c > $instpath/logger-src/logger-neu.c
       ;;
   esac
-  gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o logger-bin/logger logger-src/logger-neu.c -lmysqlclient
-  rm -f logger-src/logger-neu.c
-  cp -f logger-bin/logger /usr/local/bin/
+  gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o $instpath/logger-bin/logger $instpath/logger-src/logger-neu.c -lmysqlclient
+  rm -f $instpath/logger-src/logger-neu.c
+  cp -f $instpath/logger-bin/logger /usr/local/bin/
 }
 
 #Creation of config-file
@@ -255,7 +259,7 @@ config_file_logger(){
 
 #activation and start of the logger
 activation(){
-  cp -f init.d/solarmax-logger /etc/init.d/
+  cp -f $instpath/init.d/solarmax-logger /etc/init.d/
   /etc/init.d/solarmax-logger start
   insserv solarmax-logger >/dev/null 2>&1
   chkconfig solarmax-logger >/dev/null 2>&1
@@ -269,8 +273,8 @@ activation(){
 
 #Creation of Web
 create_web(){
-mkdir web-custom
-cp -R web/* web-custom/
+mkdir $instpath/web-custom
+cp -R $instpath/web/* $instpath/web-custom/
 echo -e -n "\n\n Which amount of remuneration do you get per kwh [ EUR, e. g. 0.3914 ] ? "
 read earnings
 fontpath=`find /usr/share/ |grep DejaVuSansMono.ttf`
@@ -280,27 +284,26 @@ sed -e "s/'user'/'$newuser'/" \
 -e "s,\/usr\/share\/fonts\/truetype\/ttf-dejavu\/DejaVuSansMono.ttf,$fontpath," \
 -e "s/localhost/$dbhost/" \
 sed -e "s/'solarmax'/'$db'/" \
-web-custom/solarertrag.php > web-custom/atempfile
-mv web-custom/atempfile web-custom/solarertrag.php
-#sed -e "s/password/$userpw/" web-custom/neu.php > web-custom/solarertrag.php
-#sed -e "s/0.3405/$earnings/" web-custom/solarertrag.php > web-custom/neu.php
-#sed -e "s,\/usr\/share\/fonts\/truetype\/ttf-dejavu\/DejaVuSansMono.ttf,$fontpath," web-custom/neu.php > web-custom/solarertrag.php
-#sed -e "s/localhost/$dbhost/" web-custom/solarertrag.php > web-custom/neu.php
-#sed -e "s/'solarmax'/'$db'/" web-custom/neu.php > web-custom/solarertrag.php
+$instpath/web-custom/solarertrag.php > $instpath/web-custom/atempfile
+mv $instpath/web-custom/atempfile $instpath/web-custom/solarertrag.php
+#sed -e "s/password/$userpw/" $instpath/web-custom/neu.php > $instpath/web-custom/solarertrag.php
+#sed -e "s/0.3405/$earnings/" $instpath/web-custom/solarertrag.php > $instpath/web-custom/neu.php
+#sed -e "s,\/usr\/share\/fonts\/truetype\/ttf-dejavu\/DejaVuSansMono.ttf,$fontpath," $instpath/web-custom/neu.php > $instpath/web-custom/solarertrag.php
+#sed -e "s/localhost/$dbhost/" $instpath/web-custom/solarertrag.php > $instpath/web-custom/neu.php
+#sed -e "s/'solarmax'/'$db'/" $instpath/web-custom/neu.php > $instpath/web-custom/solarertrag.php
 
-sed -e 's/$result1 =/\/\/$result1 =/' web-custom/drawday.php > web-custom/neu.php
-sed -e 's/\/\/$result =/$result1 =/' web-custom/neu.php > web-custom/drawday.php
+sed -e 's/$result1 =/\/\/$result1 =/' $instpath/web-custom/drawday.php > $instpath/web-custom/neu.php
+sed -e 's/\/\/$result =/$result1 =/' $instpath/web-custom/neu.php > $instpath/web-custom/drawday.php
 
-sed -e 's/ $result =/ \/\/$result1 =/' web-custom/drawmonth.php > web-custom/neu.php
-sed -e 's/\/\/$result =/$result =/' web-custom/neu.php > web-custom/drawmonth.php
+sed -e 's/ $result =/ \/\/$result1 =/' $instpath/web-custom/drawmonth.php > $instpath/web-custom/neu.php
+sed -e 's/\/\/$result =/$result =/' $instpath/web-custom/neu.php > $instpath/web-custom/drawmonth.php
 
-sed -e 's/ $result =/ \/\/$result1 =/' web-custom/drawyear.php > web-custom/neu.php
-sed -e 's/\/\/$result =/$result =/' web-custom/neu.php > web-custom/drawyear.php
+sed -e 's/ $result =/ \/\/$result1 =/' $instpath/web-custom/drawyear.php > $instpath/web-custom/neu.php
+sed -e 's/\/\/$result =/$result =/' $instpath/web-custom/neu.php > $instpath/web-custom/drawyear.php
 
-sed -e "s|'user'|'$newuser'|g" -e "s|'password'|'$userpw'|g" analyzer.php  > atempfile && mv atempfile analyzer.php
+sed -e "s|'user'|'$newuser'|g" -e "s|'password'|'$userpw'|g" $instpath/web-custom/analyzer.php  > $instpath/web-custom/atempfile && mv $instpath/web-custom/atempfile $instpath/web-custom/analyzer.php
 
-
-rm -f web-custom/neu.php
+rm -f $instpath/web-custom/neu.php
 echo -e "\n\n Please enter the project name, which will reside on top of the web page\n"
 echo -n " Project name: "
 read proname
@@ -374,7 +377,7 @@ else
 fi
 if [ $no_web = "0" ]; then
   mkdir -p $web_path/solarmax
-  cp -pfR web-custom/* $web_path/solarmax
+  cp -pfR $instpath/web-custom/* $web_path/solarmax
   chown -R wwwrun.www $web_path/solarmax >/dev/null 2>&1
   chown -R www-data.www-data $web_path/solarmax >/dev/null 2>&1
 fi
