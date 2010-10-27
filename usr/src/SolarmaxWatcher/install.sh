@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #some definitions
-logfile=/usr/local/etc/logger.conf
+conffile=/usr/local/etc/logger.conf
 sitehead=web-custom/sitehead.php
 tabelle=log       ## The Mysql DB tab-prefix
 db=solarmax       ## The Mysql DB name
@@ -207,50 +207,50 @@ config_file_logger(){
   read invport
 
   mkdir -p /usr/local/etc
-  touch $logfile
-  chmod 0600 $logfile
-  chown root.root $logfile
-  echo "## Settings for the Solarmax Watcher" > $logfile
-  echo "## defaults are shown in parentheses" >> $logfile
-  echo "" >> $logfile
-  echo "# Interval to read the values of the inverter (60)" >> $logfile
-  echo "Loginterval=$loginterval" >> $logfile
-  echo "" >> $logfile
-  echo "# Interval to wait for inverters answer (200)" >> $logfile
-  echo "Waitinterval=200" >> $logfile
-  echo "" >> $logfile
-  echo "" >> $logfile
-  echo "## Mysql settings" >> $logfile
-  echo "" >> $logfile
-  echo "# Hostname which is running the Mysql Server (localhost)" >> $logfile
-  echo "DBhost=$dbhost" >> $logfile
-  echo "" >> $logfile
-  echo "# Tablename prefix (log)" >> $logfile
-  echo "DBtabprefix=$tabelle" >> $logfile
-  echo "" >> $logfile
-  echo "# Name of the mysql-DB for the Solarmax logger (solarmax)" >> $logfile
-  echo "DBname=$db" >> $logfile
-  echo "" >> $logfile
-  echo "# DB-User to write the values Solarmax-DB ($newuser)" >> $logfile
-  echo "DBuser=$newuser" >> $logfile
-  echo "" >> $logfile
-  echo "# Password for the DB-User" >> $logfile
-  echo "DBpass=$userpw" >> $logfile
-  echo "" >> $logfile
-  echo "" >> $logfile
-  echo "## Inverter settings" >> $logfile
-  echo "" >> $logfile
-  echo "# IP-address or hostname of the inverter connected to the LAN" >> $logfile
-  echo "Hostname=$invhost" >> $logfile
-  echo "" >> $logfile
-  echo "# IP-Port of the inverter (12345)" >> $logfile
-  echo "Hostport=$invport" >> $logfile
-  echo "" >> $logfile
-  echo "# Number of Solarmax inverters in your array (1)" >> $logfile
-  echo "NumberOfInverters=$anz_wr" >> $logfile
+  touch $conffile
+  chmod 0600 $conffile
+  chown root.root $conffile
+  echo "## Settings for the Solarmax Watcher" > $conffile
+  echo "## defaults are shown in parentheses" >> $conffile
+  echo "" >> $conffile
+  echo "# Interval to read the values of the inverter (60)" >> $conffile
+  echo "Loginterval=$loginterval" >> $conffile
+  echo "" >> $conffile
+  echo "# Interval to wait for inverters answer (200)" >> $conffile
+  echo "Waitinterval=200" >> $conffile
+  echo "" >> $conffile
+  echo "" >> $conffile
+  echo "## Mysql settings" >> $conffile
+  echo "" >> $conffile
+  echo "# Hostname which is running the Mysql Server (localhost)" >> $conffile
+  echo "DBhost=$dbhost" >> $conffile
+  echo "" >> $conffile
+  echo "# Tablename prefix (log)" >> $conffile
+  echo "DBtabprefix=$tabelle" >> $conffile
+  echo "" >> $conffile
+  echo "# Name of the mysql-DB for the Solarmax logger (solarmax)" >> $conffile
+  echo "DBname=$db" >> $conffile
+  echo "" >> $conffile
+  echo "# DB-User to write the values Solarmax-DB ($newuser)" >> $conffile
+  echo "DBuser=$newuser" >> $conffile
+  echo "" >> $conffile
+  echo "# Password for the DB-User" >> $conffile
+  echo "DBpass=$userpw" >> $conffile
+  echo "" >> $conffile
+  echo "" >> $conffile
+  echo "## Inverter settings" >> $conffile
+  echo "" >> $conffile
+  echo "# IP-address or hostname of the inverter connected to the LAN" >> $conffile
+  echo "Hostname=$invhost" >> $conffile
+  echo "" >> $conffile
+  echo "# IP-Port of the inverter (12345)" >> $conffile
+  echo "Hostport=$invport" >> $conffile
+  echo "" >> $conffile
+  echo "# Number of Solarmax inverters in your array (1)" >> $conffile
+  echo "NumberOfInverters=$anz_wr" >> $conffile
 
   echo -e "\n\n If any of the settings above was incorrect or should change in the future, "
-  echo -e " please edit the file '$logfile' to change these settings.\n"
+  echo -e " please edit the file '$conffile' to change these settings.\n"
 }
 
 #activation and start of the logger
@@ -274,12 +274,19 @@ cp -R web/* web-custom/
 echo -e -n "\n\n Which amount of remuneration do you get per kwh [ EUR, e. g. 0.3914 ] ? "
 read earnings
 fontpath=`find /usr/share/ |grep DejaVuSansMono.ttf`
-sed -e "s/'user'/'$newuser'/" web-custom/solarertrag.php > web-custom/neu.php
-sed -e "s/password/$userpw/" web-custom/neu.php > web-custom/solarertrag.php
-sed -e "s/0.3405/$earnings/" web-custom/solarertrag.php > web-custom/neu.php
-sed -e "s,\/usr\/share\/fonts\/truetype\/ttf-dejavu\/DejaVuSansMono.ttf,$fontpath," web-custom/neu.php > web-custom/solarertrag.php
-sed -e "s/localhost/$dbhost/" web-custom/solarertrag.php > web-custom/neu.php
-sed -e "s/'solarmax'/'$db'/" web-custom/neu.php > web-custom/solarertrag.php
+sed -e "s/'user'/'$newuser'/" \
+-e "s/password/$userpw/" \
+-e "s/0.3405/$earnings/" \
+-e "s,\/usr\/share\/fonts\/truetype\/ttf-dejavu\/DejaVuSansMono.ttf,$fontpath," \
+-e "s/localhost/$dbhost/" \
+sed -e "s/'solarmax'/'$db'/" \
+web-custom/solarertrag.php > web-custom/atempfile
+mv web-custom/atempfile web-custom/solarertrag.php
+#sed -e "s/password/$userpw/" web-custom/neu.php > web-custom/solarertrag.php
+#sed -e "s/0.3405/$earnings/" web-custom/solarertrag.php > web-custom/neu.php
+#sed -e "s,\/usr\/share\/fonts\/truetype\/ttf-dejavu\/DejaVuSansMono.ttf,$fontpath," web-custom/neu.php > web-custom/solarertrag.php
+#sed -e "s/localhost/$dbhost/" web-custom/solarertrag.php > web-custom/neu.php
+#sed -e "s/'solarmax'/'$db'/" web-custom/neu.php > web-custom/solarertrag.php
 
 sed -e 's/$result1 =/\/\/$result1 =/' web-custom/drawday.php > web-custom/neu.php
 sed -e 's/\/\/$result =/$result1 =/' web-custom/neu.php > web-custom/drawday.php
