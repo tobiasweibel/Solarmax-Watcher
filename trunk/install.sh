@@ -90,8 +90,8 @@ ask_mysqlroot_pw(){
     korrekt2
   else
     korrekt3(){
-      echo -e "\n Until now, no password is set for mysql-user 'root'. We set it now ... "
-      echo -n -e "\n Mysql passwort for user 'root': "
+      echo -e "\n Until now, no password is set for Mysql-user 'root'. We'll set it now ... "
+      echo -n -e "\n Mysql password for user 'root': "
       read -s rootpw
       echo -n -e "\n Repeat password input         : "
       read -s rootpw2
@@ -286,11 +286,6 @@ sed -e "s/'user'/'$newuser'/" \
 sed -e "s/'solarmax'/'$db'/" \
 $instpath/web-custom/solarertrag.php > $instpath/web-custom/atempfile
 mv $instpath/web-custom/atempfile $instpath/web-custom/solarertrag.php
-#sed -e "s/password/$userpw/" $instpath/web-custom/neu.php > $instpath/web-custom/solarertrag.php
-#sed -e "s/0.3405/$earnings/" $instpath/web-custom/solarertrag.php > $instpath/web-custom/neu.php
-#sed -e "s,\/usr\/share\/fonts\/truetype\/ttf-dejavu\/DejaVuSansMono.ttf,$fontpath," $instpath/web-custom/neu.php > $instpath/web-custom/solarertrag.php
-#sed -e "s/localhost/$dbhost/" $instpath/web-custom/solarertrag.php > $instpath/web-custom/neu.php
-#sed -e "s/'solarmax'/'$db'/" $instpath/web-custom/neu.php > $instpath/web-custom/solarertrag.php
 
 sed -e 's/$result1 =/\/\/$result1 =/' $instpath/web-custom/drawday.php > $instpath/web-custom/neu.php
 sed -e 's/\/\/$result =/$result1 =/' $instpath/web-custom/neu.php > $instpath/web-custom/drawday.php
