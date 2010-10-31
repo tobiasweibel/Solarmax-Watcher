@@ -252,6 +252,12 @@ int main(int argc, char *argv[]) {
 		// Start sending the data requests and logging the answers
 		while (1) {
  
+ 			// We have to get out of this while-loop to reestablish the connection to the inverter
+			if (lost_connection){
+                 debug_entry("Looks like we lost our connection to solarmax, reconnecting...");
+                 break;
+            }
+             
 			// Get the current time
 			time_t start_time = time(NULL);
 
@@ -341,12 +347,6 @@ int main(int argc, char *argv[]) {
 					break;
 				}
 
-				// Let's get out of the loop if we lost our connection. No need to do the database stuff.
-				if (lost_connection){
-					debug_entry("Looks like we lost our connection to solarmax, reconnecting...");
-					break;
-				}
-
 				// Convert the extracted data fields to integer values
 				temp = strndup(buffer + matches[1].rm_so, matches[1].rm_eo - matches[1].rm_so);
 				kdy = strtol(temp, NULL, 16);
@@ -400,19 +400,19 @@ int main(int argc, char *argv[]) {
 				mysql_query(connection, query);
 				if (mysql_errno(connection))
 					error_exit(mysql_error(connection));
-				}
-
-				// Get the current time
-				time_t stop_time = time(NULL);
-
-				// Wait for the specified number of seconds - calc duration - 1
-				if (DEBUG)
-					debug_entry("Waiting for about 1 minute ...");
-				sleep(log_interval + start_time - stop_time - 1);
-
-				// Add a busy-loop for the last second to make sure we are perfectly accurate
-				while (time(NULL) < start_time + log_interval) usleep(99999);
 			}
+
+			// Get the current time
+			time_t stop_time = time(NULL);
+
+			// Wait for the specified number of seconds - calc duration - 1
+			if (DEBUG)
+				debug_entry("Waiting for about 1 minute ...");
+			sleep(log_interval + start_time - stop_time - 1);
+
+			// Add a busy-loop for the last second to make sure we are perfectly accurate
+			while (time(NULL) < start_time + log_interval) usleep(99999);
 		}
-   return 0;
+	}
+	return 0;
 }
