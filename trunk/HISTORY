@@ -17,6 +17,7 @@ Version 0.2.3
 - new		: installer - Note in case of non-localhost Mysql server
 - new		: installer - Requirements are now shown at the beginning of the install procedure
 - new		: installer - Mysql server on other machines than 'localhost' is accepted
+- new    : installer - Generation of an uninstaller-script during runtime of installer
 - new		: php-web - added analyzer.php
 			This script feeds parts of the collected data to Stephan Collets
 			"SolarAnalyzer" program with which you can compare your solar array
