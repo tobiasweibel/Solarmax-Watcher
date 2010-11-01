@@ -355,6 +355,7 @@ echo -e "\n\n Please enter the root of your web folder or choose one of the foll
 echo -e "\n   1. /srv/www/htdocs"
 echo "   2. /var/www"
 echo "   3. other choice"
+echo "   4. no web-folder now"
 echo -e -n "\n   Your choice: "
 read web_alt
 no_web=0
@@ -375,7 +376,16 @@ if [ $no_web = "0" ]; then
   cp -pfR $instpath/web-custom/* $web_path/solarmax
   chown -R wwwrun.www $web_path/solarmax >/dev/null 2>&1
   chown -R www-data.www-data $web_path/solarmax >/dev/null 2>&1
+  else
+  web_path=no__web
 fi
+}
+
+conf_uinst(){
+echo -e "\n\n Configuring the uninstall script, residing in the root-folder"
+echo -e " of this archive ... \n"
+sed -e "s,someweb,$web_path," -e "s,somehost,$dbhost," -e "s,somedb,$db," $instpath/bin/SolarmaxWatcher-uninstaller-blank.sh > $instpath/Solarmax_uninstaller.sh
+chmod 0777 $instpath/Solarmax_uninstaller.sh
 }
 
 function pause(){
@@ -429,6 +439,7 @@ compile_logger
 config_file_logger
 activation
 create_web
+conf_uinst
 
 echo ""
 pause ' Press Enter key to proceed ...'
