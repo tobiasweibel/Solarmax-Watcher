@@ -60,8 +60,8 @@ drop_db(){
       fi
     }
     korrekt1
-    mysqldump -u root -p$rootpw -h $dbhost --lock-all-tables $dbname >$basedir/solarmax_db_$day
-    mysql -u root -p$rootpw -h $dbhost -e "drop database $dbname"
+    mysqldump -u root -p"$rootpw" -h $dbhost --lock-all-tables $dbname >$basedir/solarmax_db_$day
+    mysql -u root -p"$rootpw" -h $dbhost -e "drop database $dbname"
   else
     mysqldump -u root -h $dbhost --lock-all-tables $dbname >$basedir/solarmax_db_$day
     mysql -u root -h $dbhost -e "drop database $dbname"
