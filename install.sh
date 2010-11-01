@@ -283,7 +283,7 @@ sed -e "s/'user'/'$newuser'/" \
 -e "s/0.3405/$earnings/" \
 -e "s,\/usr\/share\/fonts\/truetype\/ttf-dejavu\/DejaVuSansMono.ttf,$fontpath," \
 -e "s/localhost/$dbhost/" \
-sed -e "s/'solarmax'/'$db'/" \
+-e "s/'solarmax'/'$db'/" \
 $instpath/web-custom/solarertrag.php > $instpath/web-custom/atempfile
 mv $instpath/web-custom/atempfile $instpath/web-custom/solarertrag.php
 
@@ -369,7 +369,7 @@ if [ $web_alt -eq "3" ]; then
 else
   no_web=1
   echo -e "\n No web root was choosen. The web folder will stay undone in the subfolder"
-  echo " web custom of the src folder of this software ..."
+  echo " web-custom of the src folder of this software ..."
 fi
 if [ $no_web = "0" ]; then
   mkdir -p $web_path/solarmax
