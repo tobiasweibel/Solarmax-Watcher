@@ -25,7 +25,9 @@ Compiling Instructions
 Running
 -------
 
-- use the install.sh script to install and configure the complete software
+- run install.sh script to install and configure the complete software by typing
+
+  ./install.sh
 
 or install manually ...
 
@@ -47,6 +49,12 @@ has no built-in facility for logging, so use CRON or similar. I use the followin
 If more than one inverter is installed, connect the 1st one with your LAN and set it to ID 001.
 The others have to be connected via RS485 in ROW, with ascending ID's (002, 003 ...) and disabled
 LAN interface.
+
+If you want to unistall the software either in parts or complete you can run the uninstall script by typing
+
+./Solarmax_uninstaller.sh
+
+with root rights. It guides you through the options of uninstalling.
 
 
 2. The virtualizer
@@ -85,7 +93,7 @@ Now you can call 'solarertrag.php' in your browser and look forward for the mone
 The php script examines the preferred language of the used browser and shows the pages text automatically in this language if there's a 
 translation for it. If no translation is available, the english version is shown.
 
-If you want to monitor more than on inverter you have to name your databases tables with numbers after 'log', e.g. 'log1', 'log2' etc. (see above). 
+If you want to monitor more than one inverter you have to name your databases tables with numbers after 'log', e.g. 'log1', 'log2' etc. (see above). 
 Add links for the inverters in 'sitehead.php' like 
   
   http://yourwebadress/solarertrag.php?wr=x
