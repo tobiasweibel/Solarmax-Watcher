@@ -123,7 +123,7 @@
           <title>Solarmax Watcher</title>
           <meta name="generator" content="Bluefish 1.0.7">
           <meta name="copyright" content="Frank Lassowski">
-          <meta name="date" content="2010-09-20T12:50:38+0200">
+          <meta name="date" content="2010-11-02T18:27:39+0100">
           <meta http-equiv="content-type" content="text/html; charset=UTF-8">
           <meta http-equiv="expires" content="0">
           <link rel="stylesheet" type="text/css" href="solarertrag.css">
@@ -272,7 +272,7 @@
           --></script>
        </div>
        <div id="footer">
-       <p>Copyright &copy; 2010 by <a href="mailto:info.lassowski.dyndns.org@arcor.de?subject=SolarMax Watcher">Frank Lassowski</a> and <a href="mailto:zagibu@gmx.ch?subject=SolarMax Watcher">zagibu</a> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; <a href="http://lassowski.dyndns.org/BierderLOG/?p=impressum">Impressum</a> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; Design by <a href="mailto:info.lassowski.dyndns.org@arcor.de?subject=SolarMax Watcher">Frank Lassowski</a></p>
+       <p><a href="https://sourceforge.net/projects/solarmaxwatcher/">Solarmax Watcher at Sourceforge</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; <a href="http://URL/to/your/impressum">Impressum</a> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; Design by <a href="mailto:info.lassowski.dyndns.org@arcor.de?subject=SolarMax Watcher">Frank Lassowski</a></p>
        </div>
        </body>
     </html>
