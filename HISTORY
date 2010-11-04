@@ -7,6 +7,8 @@ The initial release for versioning und logging of changes starts with v0.1.0
 Bug fixes, new features und updates for:
 
 Version 0.2.3
+- fix		: moved DEBUG into smw-logger.conf
+- fix		: renamed logger to smw-logger
 - fix		: installer - pathes corrected/improved
 - fix		: installer - simplification
 - fix		: installer - visual improvements

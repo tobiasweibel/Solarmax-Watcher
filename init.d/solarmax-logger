@@ -15,8 +15,8 @@
 #
 ### START DER VARIABLEN-BESCHREIBUNG
 #
-bin=/usr/local/bin/logger
-conf=/usr/local/etc/logger.conf
+bin=/usr/local/bin/smw-logger
+conf=/usr/local/etc/smw-logger.conf
 #
 ### ENDE DER VARIABLEN-BESCHREIBUNG
 

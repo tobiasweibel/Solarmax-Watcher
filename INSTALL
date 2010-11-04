@@ -2,7 +2,7 @@ Please find here the installation instructions for the "Solarmax Watcher"
 =========================================================================
 
 
-1. The logger
+1. The smw-logger
 =============
 
 
@@ -17,9 +17,8 @@ Compiling Instructions
 ----------------------
 
 - change into the logger-folder of this archiv
-- Set DEBUG to 1 (in the .c-file) to get detailed output in a separate logfile (optional).
 - compile with: 
-  gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o logger logger.c -lmysqlclient
+  gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o smw-logger smw-logger.c -lmysqlclient
 
 
 Running
@@ -37,14 +36,14 @@ or install manually ...
 - copy the logger to the prefered path, e. g. /usr/local/bin/
 - edit the config-file and copy it to the prefered path, e. g. /usr/local/etc/
 - edit init.d-script, copy it into the /etc/init.d/ - folder and make it startable.
-- Run with: /etc/init.d/solarmax start
+- Run with: /etc/init.d/solarmax-logger start
 
 It is recommended to schedule the logger to be started between 5:00 - 6:00 in the morning and
 stopped between 22:00 and 23:00 in the evening (compare with sunshine duration). The logger
 has no built-in facility for logging, so use CRON or similar. I use the following CRON entries:
 
-    00 05 * * * /etc/init.d/solarmax start
-    00 23 * * * /etc/init.d/solarmax stop
+    00 05 * * * /etc/init.d/solarmax-logger start
+    00 23 * * * /etc/init.d/solarmax-logger stop
 
 If more than one inverter is installed, connect the 1st one with your LAN and set it to ID 001.
 The others have to be connected via RS485 in ROW, with ascending ID's (002, 003 ...) and disabled
