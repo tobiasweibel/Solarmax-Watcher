@@ -7,7 +7,7 @@
 
    Compile with: gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o smw-logger smw-logger.c -lmysqlclient
 
-   Run with: ./logger /path/to/config-file
+   Run with: ./smw-logger /path/to/config-file
 
    Structure of the config-file:
 
@@ -42,7 +42,6 @@
 */
 
 #define _GNU_SOURCE
-/*#define DEBUG 0*/
 
 #include <stdio.h>
 #include <stdlib.h>
