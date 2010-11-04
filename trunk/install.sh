@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #some definitions
-conffile=/usr/local/etc/logger.conf
+conffile=/usr/local/etc/smw-logger.conf
 tabelle=log       ## The Mysql DB tab-prefix
 db=solarmax       ## The Mysql DB name
 newuser=solaruser ## The Mysql DB user
@@ -179,22 +179,46 @@ create_db(){
   fi
 }
 
+## ask for debugging
+ask_debug() {
+	echo -n -e "\n Shall debugging be enabled? (y/n) [N]"
+	read debug
+	if [ -z $debug ]; then
+		DEBUGENABLE=0
+	else
+		case "$debug" in
+		y|n)
+			if [ $debug == "y" ]; then
+				DEBUGENABLE=1
+			else
+				DEBUGENABLE=0
+			fi
+			return 0
+			;;
+		*)
+			echo -e "\nEither use y or n for your choice, please."
+			ask_debug
+			;;
+		esac
+	fi
+}
+
 ## compile logger and move into filesystem
 compile_logger(){
   mkdir -p $instpath/logger-bin
-  echo -n -e "\n Shall debugging be enabled? (y/n) [N] "
-  read DEBUGENABLE
-  case "$DEBUGENABLE" in
-    y)
-      sed -e "s/define DEBUG 0/define DEBUG 1/" $instpath/logger-src/logger.c > $instpath/logger-src/logger-neu.c
-      ;;
-    *)
-      sed -e "s/define DEBUG 1/define DEBUG 0/" $instpath/logger-src/logger.c > $instpath/logger-src/logger-neu.c
-      ;;
-  esac
-  gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o $instpath/logger-bin/logger $instpath/logger-src/logger-neu.c -lmysqlclient
-  rm -f $instpath/logger-src/logger-neu.c
-  cp -f $instpath/logger-bin/logger /usr/local/bin/
+#  echo -n -e "\n Shall debugging be enabled? (y/n) [N] "
+#  read DEBUGENABLE
+#  case "$DEBUGENABLE" in
+#    y)
+#      sed -e "s/define DEBUG 0/define DEBUG 1/" $instpath/logger-src/smw-logger.c > $instpath/logger-src/smw-logger-neu.c
+#      ;;
+#    *)
+#      sed -e "s/define DEBUG 1/define DEBUG 0/" $instpath/logger-src/smw-logger.c > $instpath/logger-src/smw-logger-neu.c
+#      ;;
+#  esac
+  gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o $instpath/logger-bin/smw-logger $instpath/logger-src/smw-logger.c -lmysqlclient
+#  rm -f $instpath/logger-src/smw-logger-neu.c
+  cp -f $instpath/logger-bin/smw-logger /usr/local/bin/
 }
 
 #Creation of config-file
@@ -216,6 +240,9 @@ config_file_logger(){
   chown root.root $conffile
   echo "## Settings for the Solarmax Watcher" > $conffile
   echo "## defaults are shown in parentheses" >> $conffile
+  echo "" >> $conffile
+  echo "# Debug (0)?" >> $conffile
+  echo "Debug=$DEBUGENABLE" >> $conffile
   echo "" >> $conffile
   echo "# Interval to read the values of the inverter (60)" >> $conffile
   echo "Loginterval=$loginterval" >> $conffile
@@ -257,7 +284,7 @@ config_file_logger(){
   echo -e " please edit the file '$conffile' to change these settings.\n"
 }
 
-#activation and start of the logger
+#activation and start of the smw-logger
 activation(){
   cp -f $instpath/init.d/solarmax-logger /etc/init.d/
   /etc/init.d/solarmax-logger start
@@ -435,6 +462,7 @@ ask_mysql_host
 ask_mysqlroot_pw
 ask_mysqluser_pw
 create_db
+ask_debug
 compile_logger
 config_file_logger
 activation

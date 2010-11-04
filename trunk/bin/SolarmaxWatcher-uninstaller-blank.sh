@@ -14,20 +14,20 @@ mkdir -p $basedir
 
 #uninstall logger
 uinst_logger(){
-echo -e "\n uninstalling the logger ... "
-killall logger
+echo -e "\n uninstalling the smw-logger ... "
+killall smw-logger
 chkconfig -d solarmax-logger >/dev/null 2>&1
 insserv -r solarmax-logger >/dev/null 2>&1
 update-rc.d -f solarmax-logger remove >/dev/null 2>&1
-tar -cPf $basedir/logger.tar.gz /usr/local/bin/logger /etc/init.d/solarmax-logger /var/log/solarmax*.log
-rm -f /usr/local/bin/logger /etc/init.d/solarmax-logger /var/log/solarmax*.log
+tar -cPf $basedir/logger.tar.gz /usr/local/bin/smw-logger /etc/init.d/solarmax-logger /var/log/solarmax*.log
+rm -f /usr/local/bin/smw-logger /etc/init.d/solarmax-logger /var/log/solarmax*.log
 }
 
 #uninstall logger.conf
 uinst_logconf(){
 echo -e "\n deleting of the loggers config-file ... "
-tar -cPf $basedir/logger.conf.tar.gz /usr/local/etc/logger.conf
-rm -f /usr/local/etc/logger.conf
+tar -cPf $basedir/logger.conf.tar.gz /usr/local/etc/smw-logger.conf
+rm -f /usr/local/etc/smw-logger.conf
 }
 
 #uninstall watcher-web
@@ -106,7 +106,7 @@ case $uopt in
   2)
     echo -e "\n\n selective uninstall, we will ask before every step ... \n\n"
     mkbasedir
-    echo -n -e "\n Should the logger be uninstalled ? [y/n] "
+    echo -n -e "\n Should the smw-logger be uninstalled ? [y/n] "
     read s_logger
     case "$s_logger" in
       y)
@@ -116,7 +116,7 @@ case $uopt in
         echo " ... skipping this point "
         ;;
     esac
-    echo -n -e "\n Should we archive and delete the 'logger.conf' ? [y/n] "
+    echo -n -e "\n Should we archive and delete the 'smw-logger.conf' ? [y/n] "
     read s_logconf
     case "$s_logconf" in
       y)

@@ -4,13 +4,14 @@
 	It is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
 
 	You need the mysql client library files installed to be able to compile it.
-   
-   Compile with: gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o logger logger.c -lmysqlclient
+
+   Compile with: gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o smw-logger smw-logger.c -lmysqlclient
 
    Run with: ./logger /path/to/config-file
 
    Structure of the config-file:
-   
+
+   Debug=0
 	Loginterval=60
 	Waitinterval=200
 	DBhost=localhost
@@ -24,12 +25,13 @@
 
    You can set DEBUG to 1 to get detailed output in a separate logfile.
 
-   It is recommended to schedule the logger to be started between 5:00 - 6:00 in the morning
-   and stopped between 22:00 and 23:00 in the evening (compare with sunshine duration). The
-   logger has no built-in facility for logging, so use CRON or similar. I use the following
-   CRON entries:
-   00 05 * * * /usr/local/bin/logger /usr/local/etc/logger.conf
-   00 23 * * * killall logger
+   It is recommended to schedule the smw-logger to be started between 5:00 - 6:00 in the
+   morning and stopped between 22:00 and 23:00 in the evening (compare with sunshine
+   duration). The smw-logger has no built-in facility for logging, so use CRON or similar.
+
+   Example CRON entries:
+   00 05 * * * /usr/local/bin/smw-logger /usr/local/etc/smw-logger.conf
+   00 23 * * * killall smw-logger
 
    Sources:
   - http://www.linuxhowtos.org/C_C++/socket.htm
@@ -40,7 +42,7 @@
 */
 
 #define _GNU_SOURCE
-#define DEBUG 0
+/*#define DEBUG 0*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,7 +69,7 @@ char* debug_mode = "w";
 FILE* config_file = NULL;
 char* config_file_name;
 char* config_mode = "r";
-int sockfd, portno, n, log_interval, result, counter, wait_interval, active_max, nr_of_maxes;
+int sockfd, portno, n, log_interval, result, counter, wait_interval, active_max, nr_of_maxes, DEBUG;
 int lost_connection = 0;
 struct sockaddr_in serv_addr;
 struct hostent* server;
@@ -139,15 +141,6 @@ int main(int argc, char *argv[]) {
 	// Make file unbuffered
 	setbuf(error_file, NULL);
 
-	// Try to open debug log file, if necessary
-	if(DEBUG) {
-		if((debug_file = fopen(debug_file_name, debug_mode)) == NULL)
-			error_exit("ERROR opening debug.log file");
-
-		// Make file unbuffered
-		setbuf(debug_file, NULL);
-   }
-   
    //Read Config File
    config_file_name = argv[1];
 	FILE *fp = fopen(config_file_name, config_mode);
@@ -155,6 +148,7 @@ int main(int argc, char *argv[]) {
 	// Read variables
 	if (fp) {
 		while (fgets(line, sizeof(line), fp)) {
+			sscanf(line, "Debug=%d[^\n]", &DEBUG);
 			sscanf(line, "Loginterval=%d[^\n]", &log_interval);
 			sscanf(line, "Waitinterval=%d[^\n]", &wait_interval);
 			sscanf(line, "DBhost=%[^\n]", dbhost);
@@ -168,7 +162,16 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	fclose(fp);
-   
+
+	// Try to open debug log file, if necessary
+	if(DEBUG) {
+		if((debug_file = fopen(debug_file_name, debug_mode)) == NULL)
+			error_exit("ERROR opening debug.log file");
+
+		// Make file unbuffered
+		setbuf(debug_file, NULL);
+   }   
+
 	// Try to compile regular expression
 	result = regcomp(&rx, expression, REG_EXTENDED);
 	if (result != 0) {
@@ -194,7 +197,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	while (1) {
-   
+
 		// set variable to default value or it will keep trying to reconnect
 		lost_connection = 0;
 

@@ -23,10 +23,10 @@ See INSTALL file.
 How it works
 ------------
 
-This logging solution is composed of two main parts. The first part is the logger, which reads the
+This logging solution is composed of two main parts. The first part is the smw-logger, which reads the
 figures over ethernet from the Solarmax inverters. It's written in "c" and works as a deamon during the day.
 
-The second part is a php programm to visualize all the data, which were collected by the logger.
+The second part is a php programm to visualize all the data, which were collected by the smw-logger.
 
 
 ToDo-list
