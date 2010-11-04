@@ -8,7 +8,7 @@ newuser=solaruser ## The Mysql DB user
 realpath=$0
 instpath="${realpath%/*}"
 if [ "$instpath" = "." ]; then
-  instpath=`pwd`
+	instpath=`pwd`
 fi
 sitehead=$instpath/web-custom/sitehead.php
 installerversion=`cat $instpath/HISTORY|grep -m 1 Version|cut -d' ' -f2`
@@ -205,97 +205,57 @@ ask_debug() {
 
 ## compile logger and move into filesystem
 compile_logger(){
-  mkdir -p $instpath/logger-bin
-#  echo -n -e "\n Shall debugging be enabled? (y/n) [N] "
-#  read DEBUGENABLE
-#  case "$DEBUGENABLE" in
-#    y)
-#      sed -e "s/define DEBUG 0/define DEBUG 1/" $instpath/logger-src/smw-logger.c > $instpath/logger-src/smw-logger-neu.c
-#      ;;
-#    *)
-#      sed -e "s/define DEBUG 1/define DEBUG 0/" $instpath/logger-src/smw-logger.c > $instpath/logger-src/smw-logger-neu.c
-#      ;;
-#  esac
-  gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o $instpath/logger-bin/smw-logger $instpath/logger-src/smw-logger.c -lmysqlclient
-#  rm -f $instpath/logger-src/smw-logger-neu.c
-  cp -f $instpath/logger-bin/smw-logger /usr/local/bin/
+	mkdir -p $instpath/logger-bin
+	gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o $instpath/logger-bin/smw-logger $instpath/logger-src/smw-logger.c -lmysqlclient
+	cp -f $instpath/logger-bin/smw-logger /usr/local/bin/
 }
 
 #Creation of config-file
 config_file_logger(){
-  echo -e "\n\n Define a logging interval in seconds here (60 might be a good choice) ... \n"
-  echo -n " Logging interval: "
-  read loginterval
+	echo -e "\n\n Define a logging interval in seconds here (60 might be a good choice) ... \n"
+	echo -n " Logging interval: "
+	read loginterval
 
-  echo -e "\n\n LAN-Settings for 1st inverter"
-  echo -e " -------------------\n"
-  echo -n " Hostname or IP: "
-  read invhost
-  echo -n " Port          : "
-  read invport
+	echo -e "\n\n LAN-Settings for 1st inverter"
+	echo -e " -------------------\n"
+	echo -n " Hostname or IP: "
+	read invhost
+	echo -n " Port          : "
+	read invport
 
-  mkdir -p /usr/local/etc
-  touch $conffile
-  chmod 0600 $conffile
-  chown root.root $conffile
-  echo "## Settings for the Solarmax Watcher" > $conffile
-  echo "## defaults are shown in parentheses" >> $conffile
-  echo "" >> $conffile
-  echo "# Debug (0)?" >> $conffile
-  echo "Debug=$DEBUGENABLE" >> $conffile
-  echo "" >> $conffile
-  echo "# Interval to read the values of the inverter (60)" >> $conffile
-  echo "Loginterval=$loginterval" >> $conffile
-  echo "" >> $conffile
-  echo "# Interval to wait for inverters answer (200)" >> $conffile
-  echo "Waitinterval=200" >> $conffile
-  echo "" >> $conffile
-  echo "" >> $conffile
-  echo "## Mysql settings" >> $conffile
-  echo "" >> $conffile
-  echo "# Hostname which is running the Mysql Server (localhost)" >> $conffile
-  echo "DBhost=$dbhost" >> $conffile
-  echo "" >> $conffile
-  echo "# Tablename prefix (log)" >> $conffile
-  echo "DBtabprefix=$tabelle" >> $conffile
-  echo "" >> $conffile
-  echo "# Name of the mysql-DB for the Solarmax logger (solarmax)" >> $conffile
-  echo "DBname=$db" >> $conffile
-  echo "" >> $conffile
-  echo "# DB-User to write the values Solarmax-DB ($newuser)" >> $conffile
-  echo "DBuser=$newuser" >> $conffile
-  echo "" >> $conffile
-  echo "# Password for the DB-User" >> $conffile
-  echo "DBpass=$userpw" >> $conffile
-  echo "" >> $conffile
-  echo "" >> $conffile
-  echo "## Inverter settings" >> $conffile
-  echo "" >> $conffile
-  echo "# IP-address or hostname of the inverter connected to the LAN" >> $conffile
-  echo "Hostname=$invhost" >> $conffile
-  echo "" >> $conffile
-  echo "# IP-Port of the inverter (12345)" >> $conffile
-  echo "Hostport=$invport" >> $conffile
-  echo "" >> $conffile
-  echo "# Number of Solarmax inverters in your array (1)" >> $conffile
-  echo "NumberOfInverters=$anz_wr" >> $conffile
+	mkdir -p /usr/local/etc
+	cp $instpath/example-config/smw-logger.conf $conffile
+	chmod 0600 $conffile
+	chown root.root $conffile
+	sed -e "s/Debug=0/Debug=$DEBUGENABLE/" \
+	-e "s/Loginterval=60/Loginterval=$loginterval/" \
+	-e "s/DBhost=localhost/DBhost=$dbhost/" \
+	-e "s/DBtabprefix=log/DBtabprefix=$tabelle/" \
+	-e "s/DBname=solarmax/DBname=$db/" \
+	-e "s/DBuser=solaruser/DBuser=$newuser/" \
+	-e "s/DBpass=userpassword/DBpass=$userpw/" \
+	-e "s/Hostname=192.168.178.35/Hostname=$invhost/" \
+	-e "s/Hostport=12345/Hostport=$invport/" \
+	-e "s/NumberOfInverters=1/NumberOfInverters=$anz_wr/" \
+	$conffile > atempfile
+	mv atempfile $conffile
 
-  echo -e "\n\n If any of the settings above was incorrect or should change in the future, "
-  echo -e " please edit the file '$conffile' to change these settings.\n"
+	echo -e "\n\n If any of the settings above was incorrect or should change in the future, "
+	echo -e " please edit the file '$conffile' to change these settings.\n"
 }
 
 #activation and start of the smw-logger
 activation(){
-  cp -f $instpath/init.d/solarmax-logger /etc/init.d/
-  /etc/init.d/solarmax-logger start
-  insserv solarmax-logger >/dev/null 2>&1
-  chkconfig solarmax-logger >/dev/null 2>&1
-  update-rc.d solarmax-logger defaults >/dev/null 2>&1
+	cp -f $instpath/init.d/solarmax-logger /etc/init.d/
+	/etc/init.d/solarmax-logger start
+	insserv solarmax-logger >/dev/null 2>&1
+	chkconfig solarmax-logger >/dev/null 2>&1
+	update-rc.d solarmax-logger defaults >/dev/null 2>&1
 
-  if [ `cat /etc/crontab| grep -c 'solarmax-logger'` = 0 ]; then
-    echo "00 4 * * *  root  /etc/init.d/solarmax-logger start" >> /etc/crontab
-    echo "00 23 * * *  root  /etc/init.d/solarmax-logger stop" >> /etc/crontab
-  fi
+	if [ `cat /etc/crontab| grep -c 'solarmax-logger'` = 0 ]; then
+		echo "00 4 * * *  root  /etc/init.d/solarmax-logger start" >> /etc/crontab
+		echo "00 23 * * *  root  /etc/init.d/solarmax-logger stop" >> /etc/crontab
+	fi
 }
 
 #Creation of Web
