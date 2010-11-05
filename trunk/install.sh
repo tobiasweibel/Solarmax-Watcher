@@ -181,7 +181,7 @@ create_db(){
 
 ## ask for debugging
 ask_debug() {
-	echo -n -e "\n Shall debugging be enabled? (y/n) [N]"
+	echo -n -e "\n\n Shall debugging be enabled? (y/n) [N] "
 	read debug
 	if [ -z $debug ]; then
 		DEBUGENABLE=0
