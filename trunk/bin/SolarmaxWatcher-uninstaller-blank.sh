@@ -80,7 +80,7 @@ echo -e "\n\n Uninstaller for the Solarmax Watcher"
 
 if [ `whoami` != "root" ]; then
 	echo -e "\n Root privileges are required to execute this script. So please "
-	echo -e " login as root or use the 'sudo' command to start this installer; "
+	echo -e " login as root or use the 'sudo' command to start this uninstaller; "
 	echo -e " exiting. \n"
 	exit 1
 fi
