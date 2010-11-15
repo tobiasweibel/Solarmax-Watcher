@@ -32,20 +32,20 @@
 
 		while($wr < $wrnum+1) {
 			${result.$wr} = @mysql_query("SELECT created, DAY(created) AS day, max(kdy) AS kdy FROM $table$wr GROUP BY DAYOFYEAR(created)") or die(mysql_error());
-			echo "created;kdy_".$wr."<br>\n";
+			echo "created;kdy_".$wr."\n";
 			if (mysql_num_rows(${result.$wr}) == 0) {
 				// No data...create dummy line
-				echo "no data<br>\n";
+				echo "no data\n";
 			}
 			else {
 				while($row = mysql_fetch_assoc(${result.$wr})) {
-					echo substr ($row['created'], 0, 10).";".$row['kdy']*100 . "<br>\n";
+					echo substr ($row['created'], 0, 10).";".$row['kdy']*100 . "\n";
 				}
 			}
 			$wr++;
-			echo "<br>\n";
+			echo "\n";
 		}
-		echo "<br>\n";
+		echo "\n";
 	}
 
 	// Tagesdaten
@@ -82,18 +82,18 @@
 		while($wr < $wrnum+1) {
 			// Select data from given day
 			${result.$wr} = @mysql_query("SELECT * FROM $table$wr WHERE created BETWEEN '$start' AND '$end'") or die(mysql_error());
-			echo "created;kdy_".$wr.";kmt_".$wr.";kyr_".$wr.";kt0_".$wr.";tnf_".$wr.";tkk_".$wr.";pac_".$wr.";prl_".$wr.";il1_".$wr.";idc_".$wr.";ul1_".$wr.";udc_".$wr.";sys_".$wr."<br>\n";
+			echo "created;kdy_".$wr.";kmt_".$wr.";kyr_".$wr.";kt0_".$wr.";tnf_".$wr.";tkk_".$wr.";pac_".$wr.";prl_".$wr.";il1_".$wr.";idc_".$wr.";ul1_".$wr.";udc_".$wr.";sys_".$wr."\n";
 			// No data...create dummy line      
 			if (mysql_num_rows(${result.$wr}) == 0) {
-				echo "no data<br>\n";
+				echo "no data\n";
 			}
 			else {
 				while($row = mysql_fetch_assoc(${result.$wr})) {
-					echo $row['created'].";".$row['kdy']*100 . ";".$row['kmt'].";".$row['kyr'].";".$row['kt0'].";".$row['tnf']/100 . ";".$row['tkk'].";".$row['pac'].";".$row['prl'].";".$row['il1']/100 . ";".$row['idc']/100 . ";".$row['ul1']/10 . ";".$row['udc']/10 . ";".$row['sys']."<br>\n";
+					echo $row['created'].";".$row['kdy']*100 . ";".$row['kmt'].";".$row['kyr'].";".$row['kt0'].";".$row['tnf']/100 . ";".$row['tkk'].";".$row['pac'].";".$row['prl'].";".$row['il1']/100 . ";".$row['idc']/100 . ";".$row['ul1']/10 . ";".$row['udc']/10 . ";".$row['sys']."\n";
 				}
 			}
 			$wr++;
-			echo "<br>\n";
+			echo "\n";
 		}
 	}
 ?>
