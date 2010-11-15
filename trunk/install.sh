@@ -283,7 +283,7 @@ sed -e 's/\/\/$result =/$result =/' $instpath/web-custom/neu.php > $instpath/web
 sed -e 's/ $result =/ \/\/$result1 =/' $instpath/web-custom/drawyear.php > $instpath/web-custom/neu.php
 sed -e 's/\/\/$result =/$result =/' $instpath/web-custom/neu.php > $instpath/web-custom/drawyear.php
 
-sed -e "s|'user'|'$newuser'|g" -e "s|'password'|'$userpw'|g" $instpath/web-custom/analyzer.php  > $instpath/web-custom/atempfile && mv $instpath/web-custom/atempfile $instpath/web-custom/analyzer.php
+sed -e "s|'user'|'$newuser'|g" -e "s|'password'|'$userpw'|g" -e "s|\$wrnum=1|\$wrnum=${anz_wr}|g" $instpath/web-custom/analyzer.php  > $instpath/web-custom/atempfile && mv $instpath/web-custom/atempfile $instpath/web-custom/analyzer.php
 
 rm -f $instpath/web-custom/neu.php
 echo -e "\n\n Please enter the project name, which will reside on top of the web page\n"
