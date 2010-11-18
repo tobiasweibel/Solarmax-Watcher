@@ -84,13 +84,13 @@
           while($row = mysql_fetch_assoc($result1)) {
              // Determine x position
              $xpos = floor (($row['hour'] - $rise) * $px_per_hour + $row['minute'] / 60 * $px_per_hour + 25);
-             if ($xpos > $xpos_old) {
+             if ($xpos > $lastxpos) {
                 // Calculate y position with logged pac
                 $pac = $row['pac'] / $step_w * $vert_px;
                 // Draw pac line
                 imageline($image, $xpos, $height - $gap, $xpos, $height - $gap - $pac, $green);
              }
-             $xpos_old = $xpos;
+             $lastxpos = $xpos;
           }
 
           imagefttext($image, 7, 0, $width - 107, 10, $black, $fontfile, "(W)");

@@ -1,120 +1,128 @@
-    <?php
-    /*
-       Simple solarmax visualizer php program written by zagibu@gmx.ch in July 2010
-       This program was originally licensed under WTFPL 2 http://sam.zoy.org/wtfpl/
-       Improvements by Frank Lassowski flassowski@gmx.de in August 2010
-       This program is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
+	<?php
+	/*
+		Simple solarmax visualizer php program written by zagibu@gmx.ch in July 2010
+		This program was originally licensed under WTFPL 2 http://sam.zoy.org/wtfpl/
+		Improvements by Frank Lassowski flassowski@gmx.de in August 2010
+		This program is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
 
-       To run this program your server must have PHP and the gd extension enabled.
-       Put this and all the other files contained in 'solarertrag.tar.gz'
-       in your web directory, for example /var/www/ and call it with
-       http://yourwebadress/solarertrag.php
-    */
-       // select table by page query ?wr=
-       $wr=$_GET['wr'];
-       $table="log{$wr}";
+		To run this program your server must have PHP and the gd extension enabled.
+		Put this and all the other files contained in 'solarertrag.tar.gz'
+		in your web directory, for example /var/www/ and call it with
+		http://yourwebadress/solarertrag.php
+	*/
+		// select table by page query ?wr=
+		// to hopefully avoid SQL injections we only accept numbers :-)
+		if (empty($_GET['wr'])) {
+			$wr = 1;
+		}
+		elseif (preg_match('/[^0-9]/', $_GET['wr'])) {
+			$wr = 1;
+		}
+		else {
+			$wr = $_GET['wr'];
+		}
+		$table="log{$wr}";
 
-       // which language does the users browser prefer
-       $lang=substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-       if ($lang <> "de" && $lang <> "en" && $lang <> "nl" && $lang <> "fr" && $lang <> "es" && $lang <> "it")
-          $lang="en";
+		// which language does the users browser prefer
+		$lang=substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+		if ($lang <> "de" && $lang <> "en" && $lang <> "nl" && $lang <> "fr" && $lang <> "es" && $lang <> "it")
+			$lang="en";
 
-       // include language file
-       include 'lang.php';
-       
-       // if we want to switch to seperate language files we have to use the following line instead
-       //include 'lang_' . $lang . '.php';
+		// include language file
+		include 'lang.php';
 
-       // Which font to use in the graphs
-       // for Windows based servers look at C:/Windows/Fonts for appropriate fonts
-       $fontfile="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf";
-       
-       // Check POST vars
-       $period = $_POST['period'];
-       if (!in_array($period, array('day', 'month', 'year')))
-          $period = 'day';
-       $day = $_POST['day'];
-       if (empty($day))
-          $day = date('j');
-       $month = $_POST['month'];
-       if (empty($month))
-          $month = date('n');
-       $year = $_POST['year'];
-       if (empty($year))
-          $year = date('Y');
-       if (!preg_match("/[0-9]?[0-9]\.[0-9]?[0-9]\.[0-9][0-9][0-9][0-9]/", "$day.$month.$year"))
-          die(${error1.$lang} . "($day, $month, $year)");
-       if (!checkdate($month, $day, $year))
-          die(${error2.$lang} . "$day.$month.$year");
+		// if we want to switch to seperate language files we have to use the following line instead
+		//include 'lang_' . $lang . '.php';
 
-       // include daily predictions
-       include 'solarertrag_day_predictions.php';
+		// Which font to use in the graphs
+		// for Windows based servers look at C:/Windows/Fonts for appropriate fonts
+		$fontfile="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf";
 
-       // Connect to mysql database
-       @mysql_connect('localhost', 'user', 'password') or die(mysql_error());
-       @mysql_select_db('solarmax') or die(mysql_error());
+		// Check POST vars
+		$period = $_POST['period'];
+		if (!in_array($period, array('day', 'month', 'year')))
+			$period = 'day';
+		$day = $_POST['day'];
+		if (empty($day))
+			$day = date('j');
+		$month = $_POST['month'];
+		if (empty($month))
+			$month = date('n');
+		$year = $_POST['year'];
+		if (empty($year))
+			$year = date('Y');
+		if (!preg_match("/[0-9]?[0-9]\.[0-9]?[0-9]\.[0-9][0-9][0-9][0-9]/", "$day.$month.$year"))
+			die(${error1.$lang} . "($day, $month, $year)");
+		if (!checkdate($month, $day, $year))
+			die(${error2.$lang} . "$day.$month.$year");
 
-       // Check which view to use and define start and end limits
-       switch ($period) {
-          case 'day':
-             $start['day'] = $day;
-             $start['month'] = $month;
-             $start['year'] = $year;
-             $end = $start;
-             break;
-          case 'month':
-             $start['day'] = 1;
-             $start['month'] = $month;
-             $start['year'] = $year;
-             $end['day'] = 31;
-             $end['month'] = $month;
-             $end['year'] = $year;
-             break;
-          case 'year':
-             $start['day'] = 1;
-             $start['month'] = 1;
-             $start['year'] = $year;
-             $end['day'] = 31;
-             $end['month'] = 12;
-             $end['year'] = $year;
-             break;
-       }
+		// include daily predictions
+		include 'solarertrag_day_predictions.php';
 
-       // Make sure we define a valid end date
-       while (!checkdate($end['month'], $end['day'], $end['year']))
-          $end['day']--;
+		// Connect to mysql database
+		@mysql_connect('localhost', 'user', 'password') or die(mysql_error());
+		@mysql_select_db('solarmax') or die(mysql_error());
 
-       // Set predictions for chosen date
-       $pred_day = ${'d_'.date('m', mktime(0, 0, 0, $start['month'], $start['day'], $start['year']))};
+		// Check which view to use and define start and end limits
+		switch ($period) {
+			case 'day':
+				$start['day'] = $day;
+				$start['month'] = $month;
+				$start['year'] = $year;
+				$end = $start;
+				break;
+			case 'month':
+				$start['day'] = 1;
+				$start['month'] = $month;
+				$start['year'] = $year;
+				$end['day'] = 31;
+				$end['month'] = $month;
+				$end['year'] = $year;
+				break;
+			case 'year':
+				$start['day'] = 1;
+				$start['month'] = 1;
+				$start['year'] = $year;
+				$end['day'] = 31;
+				$end['month'] = 12;
+				$end['year'] = $year;
+				break;
+		}
 
-       // Include time in start and end delimiters
-       $start = date('Y-m-d H:i:s', mktime(0, 0, 0, $start['month'], $start['day'], $start['year']));
-       $end = date('Y-m-d H:i:s', mktime(23, 59, 59, $end['month'], $end['day'], $end['year']));
+		// Make sure we define a valid end date
+		while (!checkdate($end['month'], $end['day'], $end['year']))
+			$end['day']--;
 
-       // Remove old image files
-       foreach (glob("img/*.png") as $image_name)
-          unlink($image_name);
+		// Set predictions for chosen date
+		$pred_day = ${'d_'.date('m', mktime(0, 0, 0, $start['month'], $start['day'], $start['year']))};
 
-       // Create a filename with appended date to fool browser caches
-       $image_name = 'img/data_' . date('YmdHis') . '.png';
-       //   $image_name = 'data.png';
+		// Include time in start and end delimiters
+		$start = date('Y-m-d H:i:s', mktime(0, 0, 0, $start['month'], $start['day'], $start['year']));
+		$end = date('Y-m-d H:i:s', mktime(23, 59, 59, $end['month'], $end['day'], $end['year']));
 
-       // Check the desired view again and include and call the proper function
-       switch ($period) {
-          case 'day':
-             include 'drawday.php';
-             $text = draw_day($start, $end, $pred_day, $image_name, $table, $fontfile);
-             break;
-          case 'month':
-             include 'drawmonth.php';
-             $text = draw_month($start, $end, $pred_day, $image_name, $table, $fontfile);
-             break;
-          case 'year':
-             include 'drawyear.php';
-             $text = draw_year($start, $end, $pred_month, $image_name, $table, $fontfile);
-             break;
-       }
-    ?>
+		// Remove old image files
+		foreach (glob("img/*.png") as $image_name)
+			unlink($image_name);
+
+		// Create a filename with appended date to fool browser caches
+		$image_name = 'img/data_' . date('YmdHis') . '.png';
+
+		// Check the desired view again and include and call the proper function
+		switch ($period) {
+			case 'day':
+				include 'drawday.php';
+				$text = draw_day($start, $end, $pred_day, $image_name, $table, $fontfile);
+				break;
+			case 'month':
+				include 'drawmonth.php';
+				$text = draw_month($start, $end, $pred_day, $image_name, $table, $fontfile);
+				break;
+			case 'year':
+				include 'drawyear.php';
+				$text = draw_year($start, $end, $pred_month, $image_name, $table, $fontfile);
+				break;
+		}
+	?>
 
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
            "http://www.w3.org/TR/html4/strict.dtd">
@@ -123,7 +131,7 @@
           <title>Solarmax Watcher</title>
           <meta name="generator" content="Bluefish 1.0.7">
           <meta name="copyright" content="Frank Lassowski">
-          <meta name="date" content="2010-11-02T18:27:39+0100">
+          <meta name="date" content="2010-11-18T12:58:50+0100">
           <meta http-equiv="content-type" content="text/html; charset=UTF-8">
           <meta http-equiv="expires" content="0">
           <link rel="stylesheet" type="text/css" href="solarertrag.css">
