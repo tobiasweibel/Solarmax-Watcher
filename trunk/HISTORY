@@ -7,6 +7,7 @@ The initial release for versioning und logging of changes starts with v0.1.0
 Bug fixes, new features und updates for:
 
 Version 0.2.3
+- fix		: php-web - to avoid SQL injections only accept numbers as PHP query string in solarertrag.php
 - fix		: moved DEBUG into smw-logger.conf
 - fix		: renamed logger to smw-logger
 - fix		: installer - pathes corrected/improved

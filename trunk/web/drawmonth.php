@@ -66,13 +66,13 @@
           }
 
           // Draw kdy values
-          $z = 0;
+          $days = 0;
           while($row = mysql_fetch_assoc($result)) {
              // Determine x position
              $xpos = $row['day'] * $px_per_day - $px_per_day / 2;
              // Transform kWh to pixel height
              $kwh = $row['kdy'] / 10 / $step_w * $vert_px;
-             $z ++;
+             $days++;
              $sum = $sum + $row['kdy'] / 10;
              // Draw kWh bar
              imagefilledrectangle($image, $xpos + 2, $height - $gap + 22, $xpos + $px_per_day - 2, $height - $gap - $kwh + 22, $green);
@@ -84,7 +84,7 @@
           imageline($image, 12, $height - $pred - $gap + 22, $width - 35, $height - $pred - $gap + 22, $blue);
 
           // Draw average line
-          $avg =$sum / $z / $step_w * $vert_px;
+          $avg =$sum / $days / $step_w * $vert_px;
           imageline($image, 12, $height - $avg - $gap + 22, $width - 35, $height - $avg - $gap + 22, $yellow);
 
           //explain colored lines
