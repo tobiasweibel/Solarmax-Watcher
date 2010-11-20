@@ -6,6 +6,9 @@ The initial release for versioning und logging of changes starts with v0.1.0
 
 Bug fixes, new features und updates for:
 
+Version 0.3.0
+- new		: introducing switches to turn on/off parts of the graph
+
 Version 0.2.3
 - fix		: php-web - to avoid SQL injections only accept numbers as PHP query string in solarertrag.php
 - fix		: moved DEBUG into smw-logger.conf
@@ -25,7 +28,6 @@ Version 0.2.3
 			This script feeds parts of the collected data to Stephan Collets
 			"SolarAnalyzer" program with which you can compare your solar array
 			with others in your region.
-
 
 Version 0.2.2
 - fix		: Installer will quit now, if not executed with root privilegs

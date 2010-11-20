@@ -6,7 +6,7 @@
        This program is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
     */
 
-       function draw_year($start, $end, $pred_month, $image_name, $table, $fontfile) {
+       function draw_year($start, $end, $pred_month, $image_name, $table, $fontfile, $showyear_text) {
 
           // Create a date array
           $date = getdate(strtotime($end));
@@ -50,6 +50,7 @@
           include 'colors.php';
           imagefill($image, 0, 0, $white);
 
+		if (preg_match('/grid/', $showyear_text)) {
           // Draw horizontal lines with some space above and below
           for ($i = 0; $i <= $maxkwh / $step_w; $i++) {
              // Create horizontal grid line
@@ -66,7 +67,7 @@
              // Draw the hour value at the end of the vertical line
              imagefttext($image, 8, 0, $xpos - 4, $height - $gap + 28, $black, $fontfile, $i);
           }
-
+		}
           // Draw kdy values
           while($row = mysql_fetch_assoc($result)) {
              // Determine x position
@@ -74,15 +75,22 @@
              // Transform kWh to pixel height
              $kwh = $row['kmt'] / $step_w * $vert_px;
 
-             // Draw kWh bar
-             imagefilledrectangle($image, $xpos + 2, $height - $gap + 10, $xpos + $px_per_month - 2, $height - $gap - $kwh + 10, $green);
-             imagefttext($image, 12, 90, $xpos + 39, $height - $gap - $kwh + 5, $black, $fontfile, $row['kmt']);
-                          
+             // Draw kWh bar and prediction line
+				$pred_month = ${'m_'.date('m', mktime(0, 0, 0, $row['month'], 1, 0))};
+				$pred = $pred_month / $step_w * $vert_px;
+				imagefilledrectangle($image, $xpos + 2, $height - $gap + 10, $xpos + $px_per_month - 2, $height - $gap - $kwh + 10, $green);
+				imageline($image, $xpos, $height - $pred - $gap + 10, $xpos + $px_per_month, $height - $pred - $gap + 10, $blue);
+				if (preg_match('/numbers/', $showyear_text)) {
+					imagefttext($image, 12, 90, $xpos + 31, $height - $gap - $kwh + 4, $black, $fontfile, $row['kmt']);
+					imagefttext($image, 7, 0, $xpos + 45, $height - $gap - $pred + 8, $blue, $fontfile, $pred_month);
+					if (preg_match('/percent/', $showyear_text)) {
+						imagefttext($image, 6 , 90, $xpos + 42, $height - $gap - $kwh + 10, $black, $fontfile, "(".round($row['kmt'] / $pred_month,3) *100 ." %)");
+					}
+				}
              // Draw prediction line, the numbers for 'day' and 'year' don't matter
-             $pred_month = ${'m_'.date('m', mktime(0, 0, 0, $row['month'], 1, 0))};
-             $pred = $pred_month / $step_w * $vert_px;
-             imageline($image, $xpos, $height - $pred - $gap + 10, $xpos + $px_per_month, $height - $pred - $gap + 10, $blue);
-             imagefttext($image, 7, 0, $xpos + 42, $height - $gap - $pred + 8, $blue, $fontfile, $pred_month);
+            // $pred = $pred_month / $step_w * $vert_px;
+             //imageline($image, $xpos, $height - $pred - $gap + 10, $xpos + $px_per_month, $height - $pred - $gap + 10, $blue);
+             //imagefttext($image, 7, 0, $xpos + 42, $height - $gap - $pred + 8, $blue, $fontfile, $pred_month);
           }
 
           //explain colored lines
