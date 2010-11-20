@@ -6,13 +6,13 @@
        This program is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
     */
 
-       function draw_day($start, $end, $pred_day, $image_name, $table, $fontfile) {
+       function draw_day($start, $end, $pred_day, $image_name, $table, $fontfile, $showday_text) {
           // Select data from given day
           // If you are experiencing problems with the value 'kdy' especially the days very first 'kdy' is equal to the last one of the previous day comment in the next line and comment out the following one. Be aware: This is !!!untested!!! Don't slap me if something's going wrong!
           //$result = @mysql_query("SELECT HOUR(created) AS hour, MINUTE(created) AS minute, pac, kdy FROM $table WHERE created BETWEEN '$start' AND '$end' LIMIT 1, 999999999") or die(mysql_error());
           $result1 = @mysql_query("SELECT HOUR(created) AS hour, MINUTE(created) AS minute, pac FROM $table WHERE created BETWEEN '$start' AND '$end'") or die(mysql_error());
           $result2 = @mysql_query("SELECT HOUR(created) AS hour, MINUTE(created) AS minute, kdy, tkk, udc FROM $table WHERE created BETWEEN '$start' AND '$end'") or die(mysql_error());
-          
+
           if (mysql_num_rows($result1) == 0)
           {
              // No data...create dummy image
@@ -54,6 +54,7 @@
           include 'colors.php';
           imagefill($image, 0, 0, $white);
 
+		if (preg_match('/grid/', $showday_text)) {
           // Draw horizontal lines with some space above and below
           for ($i = 0; $i <= $maxpac / $step_w; $i++) {
              // Create horizontal grid line
@@ -67,7 +68,11 @@
              imagefttext($image, 7, 0, $width - 109, $ypos + 4, $black, $fontfile, $pac);
              imagefttext($image, 7, 0, $width - 74, $ypos + 4, $blue, $fontfile, $kdy);
              imagefttext($image, 7, 0, $width - 47, $ypos + 4, $black, $fontfile, $tkk);
-             imagefttext($image, 7, 0, $width - 25, $ypos + 4, $red, $fontfile, $udc);             
+             imagefttext($image, 7, 0, $width - 25, $ypos + 4, $red, $fontfile, $udc);
+              imagefttext($image, 7, 0, $width - 107, 10, $black, $fontfile, "(W)");
+          imagefttext($image, 6, 0, $width - 81, 10, $blue, $fontfile, "(kWh)");
+          imagefttext($image, 6, 0, $width - 50, 10, $black, $fontfile, "(°C)");
+          imagefttext($image, 7, 0, $width - 25, 10, $red, $fontfile, "(V)");
           }
 
           // Draw vertical lines with some space at the left and right
@@ -79,8 +84,10 @@
              $hour = ($i + $rise) % 24 . ':00';
              imagefttext($image, 8, 0, $xpos - 10, $height - $gap + 18, $black, $fontfile, $hour);
           }
+		}
 
           // Draw pac values
+		if (preg_match('/yield/', $showday_text)) {
           while($row = mysql_fetch_assoc($result1)) {
              // Determine x position
              $xpos = floor (($row['hour'] - $rise) * $px_per_hour + $row['minute'] / 60 * $px_per_hour + 25);
@@ -92,15 +99,14 @@
              }
              $lastxpos = $xpos;
           }
-
-          imagefttext($image, 7, 0, $width - 107, 10, $black, $fontfile, "(W)");
-          imagefttext($image, 6, 0, $width - 81, 10, $blue, $fontfile, "(kWh)");
-          imagefttext($image, 6, 0, $width - 50, 10, $black, $fontfile, "(°C)");
-          imagefttext($image, 7, 0, $width - 25, 10, $red, $fontfile, "(V)");
+		}
 
           // Draw prediction line
-          $pred = $pred_day / $step_kdy * $vert_px;
-          imageline($image, 12, $height - $pred - $gap, $width - 122, $height - $pred - $gap, $blue);
+
+			if (preg_match('/pred/', $showday_text)) {
+				$pred = $pred_day / $step_kdy * $vert_px;
+				imageline($image, 12, $height - $pred - $gap, $width - 122, $height - $pred - $gap, $blue);
+			}
 
           // Draw other logged values: kdy, tkk, udc
           while($row = mysql_fetch_assoc($result2)) {
@@ -108,10 +114,14 @@
              $xpos = ($row['hour'] - $rise) * $px_per_hour + $row['minute'] / 60 * $px_per_hour + 25;
              $lastxpos = $xpos;
              // Logged kdy is ten times as high as effective
-             $kdy = $row['kdy'] / 10 / $step_kdy * $vert_px;
-             // Draw kdy dot
-             imagesetpixel($image, $xpos, $height - $gap - $kdy, $blue);
+				if (preg_match('/accu/', $showday_text)) {
+					$kdy = $row['kdy'] / 10 / $step_kdy * $vert_px;
+					// Draw kdy dot
+					imagesetpixel($image, $xpos, $height - $gap - $kdy, $blue);
+				}
+
              // draw tkk as a stair-line
+				if (preg_match('/temp/', $showday_text)) {
              $tkk = $row['tkk'] / $step_tkk * $vert_px;
                 if ($lasttkk == 0) {
                 imagesetpixel($image, $xpos, $height - $gap - $tkk, $black);
@@ -119,7 +129,10 @@
                 imageline($image, $lastxpos, $height - $gap - $lasttkk, $xpos, $height - $gap - $tkk, $black);
                 }
              $lasttkk = $tkk;
+				}
+
              // Logged udc is ten times as high as effective
+				if (preg_match('/volt/', $showday_text)) {
              $udc = $row['udc'] / 10 / $step_udc * $vert_px;
                 if ($lastudc == 0) {
                 imagesetpixel($image, $xpos, $height - $gap - $udc, $red);
@@ -127,6 +140,7 @@
                 imageline($image, $lastxpos, $height - $gap - $lastudc, $xpos, $height - $gap - $udc, $red);
                 }
              $lastudc = $udc;
+				}
           }
 
           //explain colored lines

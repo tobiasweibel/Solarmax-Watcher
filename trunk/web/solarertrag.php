@@ -39,6 +39,18 @@
 		$fontfile="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf";
 
 		// Check POST vars
+		if (!empty($_POST['showday'])) $showday = $_POST['showday'];
+		else $showday = array("yield", "accu", "pred", "volt", "temp", "grid");
+		$showday_text = implode(' ',$showday);
+
+		if (!empty($_POST['showmonth'])) $showmonth = $_POST['showmonth'];
+		else $showmonth = array("numbers", "pred", "avg", "grid");
+		$showmonth_text = implode(' ',$showmonth);
+
+		if (!empty($_POST['showyear'])) $showyear = $_POST['showyear'];
+		else $showyear = array("numbers", "percent", "grid");
+		$showyear_text = implode(' ',$showyear);
+
 		$period = $_POST['period'];
 		if (!in_array($period, array('day', 'month', 'year')))
 			$period = 'day';
@@ -108,18 +120,42 @@
 		$image_name = 'img/data_' . date('YmdHis') . '.png';
 
 		// Check the desired view again and include and call the proper function
+		$input2 = "\" onclick=\"refreshDiagram()\" ";
+		$input3 = "checked=\"checked\" >";
+		$input4 = "\n<div style=\"font-size:0.7em\">\n<p>";
 		switch ($period) {
 			case 'day':
+				$input1 = "<input type=\"checkbox\" name=\"showday[]\" value=\" ";
 				include 'drawday.php';
-				$text = draw_day($start, $end, $pred_day, $image_name, $table, $fontfile);
+				$text = draw_day($start, $end, $pred_day, $image_name, $table, $fontfile, $showday_text).$input4;
+				$value = array("yield", "accu", "pred", "volt", "temp", "grid", "Ertrag \n", "akkumulierter Ertrag \n", "Vorhersage \n", "Spannung \n", "Temperatur \n", "Gitter </p>\n</div>\n");
+				for ($i = 0; $i <= 5; $i++) {
+					$text = $text.$input1.$value[$i].$input2;
+					if (preg_match("/".$value[$i]."/", $showday_text)) $text = $text.$input3.$value[$i+6];
+					else $text = $text.">".$value[$i+6];
+				}
 				break;
 			case 'month':
+				$input1 = "<input type=\"checkbox\" name=\"showmonth[]\" value=\" ";
 				include 'drawmonth.php';
-				$text = draw_month($start, $end, $pred_day, $image_name, $table, $fontfile);
+				$text = draw_month($start, $end, $pred_day, $image_name, $table, $fontfile, $showmonth_text).$input4;
+				$value = array("numbers", "pred", "avg", "grid", "Zahlen \n", "Vorhersage \n", "Durchschnitt \n", "Gitter </p>\n</div>\n");
+				for ($i = 0; $i <= 3; $i++) {
+					$text = $text.$input1.$value[$i].$input2;
+					if (preg_match("/".$value[$i]."/", $showmonth_text)) $text = $text.$input3.$value[$i+4];
+					else $text = $text.">".$value[$i+4];
+				}
 				break;
 			case 'year':
+				$input1 = "<input type=\"checkbox\" name=\"showyear[]\" value=\" ";
 				include 'drawyear.php';
-				$text = draw_year($start, $end, $pred_month, $image_name, $table, $fontfile);
+				$text = draw_year($start, $end, $pred_month, $image_name, $table, $fontfile, $showyear_text).$input4;
+				$value = array("numbers", "percent", "grid", "Zahlen \n", "Prozent \n", "Gitter </p>\n</div>\n");
+				for ($i = 0; $i <= 2; $i++) {
+					$text = $text.$input1.$value[$i].$input2;
+					if (preg_match("/".$value[$i]."/", $showyear_text)) $text = $text.$input3.$value[$i+3];
+					else $text = $text.">".$value[$i+3];
+				}
 				break;
 		}
 	?>
@@ -131,7 +167,7 @@
           <title>Solarmax Watcher</title>
           <meta name="generator" content="Bluefish 1.0.7">
           <meta name="copyright" content="Frank Lassowski">
-          <meta name="date" content="2010-11-18T12:58:50+0100">
+          <meta name="date" content="2010-11-20T18:55:51+0100">
           <meta http-equiv="content-type" content="text/html; charset=UTF-8">
           <meta http-equiv="expires" content="0">
           <link rel="stylesheet" type="text/css" href="solarertrag.css">
@@ -174,23 +210,23 @@
                    </td>
                 </tr>
              </table>
-          </form>
           <table cellspacing="6">
              <tr>
           <?php
           $result = @mysql_query("SELECT pac, kdy, kmt, kyr, kt0, tkk, sys FROM $table ORDER BY created DESC LIMIT 1") or die(mysql_error());
-          echo '<td width="30%">', ${text1.$lang}, '</td><td class="right2"><b>', mysql_result( $result, 0, 0), '</b> Watt</td>';
-          echo '<td class="left">', ${text2.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 1) / 10, '</b> kWh</td></tr>';          
-          echo '<tr><td width="30%">', ${text3.$lang}, '</td><td class="right2"><b>', mysql_result( $result, 0, 5), '</b> °C</td>';
-          echo '<td class="left">', ${text4.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 2), '</b> kWh</td></tr>';
-          echo '<tr><td width="30%">', ${text5.$lang}, '</td><td class="right2"><b>', round( mysql_result( $result, 0, 3) * 0.683 / 1000, 3), '</b> to</td>';
-          echo '<td class="left">', ${text6.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 3), '</b> kWh</td></tr>';
-          echo '<tr><td width="30%">', ${text7.$lang}, '</td><td class="right2"><b>', round( mysql_result( $result, 0, 4) * 0.683 / 1000, 3), '</b> to</td>';
-          echo '<td class="left">', ${text8.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 4), '</b> kWh</td></tr>';
-          echo '<tr><td width="30%"><b>', ${text9.$lang}, '</b></td><td class="right2"><b>', ${'_'.mysql_result( $result, 0, 6).$lang}, '</b></td>';
-          echo '<td class="left">', ${text10.$lang}, '</td><td align="right"><b>', round( mysql_result( $result, 0, 4) * 0.3405, 2), '</b> EUR</td>';
+          echo '<td width="30%">', ${text1.$lang}, '</td><td class="right2"><b>', mysql_result( $result, 0, 0), '</b> Watt</td>'."\n";
+          echo '<td class="left">', ${text2.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 1) / 10, '</b> kWh</td></tr>'."\n";          
+          echo '<tr><td width="30%">', ${text3.$lang}, '</td><td class="right2"><b>', mysql_result( $result, 0, 5), '</b> °C</td>'."\n";
+          echo '<td class="left">', ${text4.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 2), '</b> kWh</td></tr>'."\n";
+          echo '<tr><td width="30%">', ${text5.$lang}, '</td><td class="right2"><b>', round( mysql_result( $result, 0, 3) * 0.683 / 1000, 3), '</b> to</td>'."\n";
+          echo '<td class="left">', ${text6.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 3), '</b> kWh</td></tr>'."\n";
+          echo '<tr><td width="30%">', ${text7.$lang}, '</td><td class="right2"><b>', round( mysql_result( $result, 0, 4) * 0.683 / 1000, 3), '</b> to</td>'."\n";
+          echo '<td class="left">', ${text8.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 4), '</b> kWh</td></tr>'."\n";
+          echo '<tr><td width="30%"><b>', ${text9.$lang}, '</b></td><td class="right2"><b>', ${'_'.mysql_result( $result, 0, 6).$lang}, '</b></td>'."\n";
+          echo '<td class="left">', ${text10.$lang}, '</td><td align="right"><b>', round( mysql_result( $result, 0, 4) * 0.3405, 2), '</b> EUR</td>'."\n";
           echo '</tr></table>';
           echo $text;
+          echo "</form>\n";
           ?>
           <img src="<?php echo $image_name; ?>" name="Sonneneinstrahlungsdiagramm" alt="Sonneneinstrahlungsdiagramm">
 
