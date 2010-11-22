@@ -59,19 +59,20 @@
 				// Create horizontal grid line
 				$ypos = $height - $i * $vert_px - $gap;
 				imageline($image, 12, $ypos, $width - 110, $ypos, $gray);
-				// Draw the pac value at the end of the horizontal line
+				// Draw the needed scales at the end of the horizontal line
 				$pac = $i * $step_w;
 				$kdy = $i * $step_kdy;
 				$tkk = $i * $step_tkk;
 				$udc = $i * $step_udc;
-				imagefttext($image, 7, 0, $width - 109, $ypos + 4, $black, $fontfile, $pac);
-				imagefttext($image, 7, 0, $width - 74, $ypos + 4, $blue, $fontfile, $kdy);
-				imagefttext($image, 7, 0, $width - 47, $ypos + 4, $black, $fontfile, $tkk);
-				imagefttext($image, 7, 0, $width - 25, $ypos + 4, $red, $fontfile, $udc);
-				imagefttext($image, 7, 0, $width - 107, 10, $black, $fontfile, "(W)");
-				imagefttext($image, 6, 0, $width - 81, 10, $blue, $fontfile, "(kWh)");
-				imagefttext($image, 6, 0, $width - 50, 10, $black, $fontfile, "(°C)");
-				imagefttext($image, 7, 0, $width - 25, 10, $red, $fontfile, "(V)");
+
+				if (preg_match('/yield/', $show_text))
+					imagefttext($image, 7, 0, $width - 109, $ypos + 4, $black, $fontfile, $pac);
+				if (preg_match('/accu/', $show_text) | preg_match('/predday/', $show_text))
+					imagefttext($image, 7, 0, $width - 74, $ypos + 4, $blue, $fontfile, $kdy);
+				if (preg_match('/temp/', $show_text))
+					imagefttext($image, 7, 0, $width - 47, $ypos + 4, $black, $fontfile, $tkk);
+				if (preg_match('/volt/', $show_text))
+					imagefttext($image, 7, 0, $width - 25, $ypos + 4, $red, $fontfile, $udc);
 			}
 
 			// Draw vertical lines with some space at the left and right
@@ -84,6 +85,28 @@
 				imagefttext($image, 8, 0, $xpos - 10, $height - $gap + 18, $black, $fontfile, $hour);
 			}
 		}
+
+		//explain colored lines
+		if (preg_match('/yield/', $show_text) & preg_match('/gridday/', $show_text))
+				imagefttext($image, 7, 0, $width - 107, 10, $black, $fontfile, "(W)");
+			if (preg_match('/accu/', $show_text) | preg_match('/predday/', $show_text)) {
+				imageline($image, $width - ($width * 4 / 4) + 10, $height - 15, $width - ($width * 4 / 4) + 25, $height - 15, $blue);
+				imagefttext($image, 7, 0, $width - ($width * 4 / 4) + 40, $height - 12, $black, $fontfile, $GLOBALS["graphday2".$GLOBALS[lang]]);
+				if (preg_match('/gridday/', $show_text))
+					imagefttext($image, 6, 0, $width - 81, 10, $blue, $fontfile, "(kWh)");
+			}
+			if (preg_match('/temp/', $show_text)) {
+				imageline($image, $width - ($width * 2 / 4) + 0, $height - 15, $width - ($width * 2 / 4) + 15, $height - 15, $black);
+				imagefttext($image, 7, 0, $width - ($width * 2 / 4) + 30, $height - 12, $black, $fontfile, $GLOBALS["graphday3".$GLOBALS[lang]]);
+				if (preg_match('/gridday/', $show_text))
+					imagefttext($image, 6, 0, $width - 50, 10, $black, $fontfile, "(°C)");
+			}
+			if (preg_match('/volt/', $show_text)) {
+				imageline($image, $width - ($width * 1 / 4) - 30, $height - 15, $width - ($width * 1 / 4) - 15, $height - 15, $red);
+				imagefttext($image, 7, 0, $width - ($width * 1 / 4) + 0, $height - 12, $black, $fontfile, $GLOBALS["graphday4".$GLOBALS[lang]]);
+				if (preg_match('/gridday/', $show_text))
+					imagefttext($image, 7, 0, $width - 25, 10, $red, $fontfile, "(V)");
+			}
 
 		// Draw pac values
 		if (preg_match('/yield/', $show_text)) {
@@ -141,17 +164,9 @@
 			}
 		}
 
-		//explain colored lines
-		imageline($image, $width - ($width * 4 / 4) + 10, $height - 15, $width - ($width * 4 / 4) + 25, $height - 15, $blue);
-		imageline($image, $width - ($width * 2 / 4) + 0, $height - 15, $width - ($width * 2 / 4) + 15, $height - 15, $black);
-		imageline($image, $width - ($width * 1 / 4) - 30, $height - 15, $width - ($width * 1 / 4) - 15, $height - 15, $red);
-		imagefttext($image, 7, 0, $width - ($width * 4 / 4) + 40, $height - 12, $black, $fontfile, $GLOBALS["graphday2".$GLOBALS[lang]]);
-		imagefttext($image, 7, 0, $width - ($width * 2 / 4) + 30, $height - 12, $black, $fontfile, $GLOBALS["graphday3".$GLOBALS[lang]]);
-		imagefttext($image, 7, 0, $width - ($width * 1 / 4) + 0, $height - 12, $black, $fontfile, $GLOBALS["graphday4".$GLOBALS[lang]]);
 		imagepng($image, $image_name);
 		imagedestroy($image);
 
-		//return '<p>Leistung in Watt im Verlauf des Tages, Tagesertrag, Temperatur WR, DC-Spannung</p>';
 		return '<p>' . $GLOBALS["graphday1".$GLOBALS[lang]] . '</p>';
 	}
 ?>
