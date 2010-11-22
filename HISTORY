@@ -8,6 +8,7 @@ Bug fixes, new features und updates for:
 
 Version 0.3.0
 - new		: introducing switches to turn on/off parts of the graph
+- new		: the graph's switches are stored in $_POST
 
 Version 0.2.3
 - fix		: php-web - to avoid SQL injections only accept numbers as PHP query string in solarertrag.php
