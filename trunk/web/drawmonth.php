@@ -100,19 +100,18 @@
 		if (preg_match('/predmonth/', $show_text)) {
 			$pred = $pred_day / $step_w * $vert_px;
 			imageline($image, 12, $height - $pred - $gap + 22, $width - 35, $height - $pred - $gap + 22, $blue);
+			imageline($image, $width - ($width * 3 / 4) -10, $height - 15, $width - ($width * 3 / 4) + 5, $height - 15, $blue);
+			imagefttext($image, 7, 0, $width - ($width * 3 / 4) + 20, $height - 12, $black, $fontfile, $GLOBALS["graphmonth2".$GLOBALS[lang]]);
 		}
 
 		// Draw average line
 		if (preg_match('/avg/', $show_text)) {
 			$avg =$sum / $days / $step_w * $vert_px;
 			imageline($image, 12, $height - $avg - $gap + 22, $width - 35, $height - $avg - $gap + 22, $yellow);
+			imageline($image, $width - ($width * 2 / 4) - 5, $height - 15, $width - ($width * 2 / 4) +10, $height - 15, $yellow);
+			imagefttext($image, 7, 0, $width - ($width * 2 / 4) +25, $height - 12, $black, $fontfile, $GLOBALS["graphmonth3".$GLOBALS[lang]]);
 		}
 
-		//explain colored lines
-		imageline($image, $width - ($width * 3 / 4) -10, $height - 15, $width - ($width * 3 / 4) + 5, $height - 15, $blue);
-		imageline($image, $width - ($width * 2 / 4) - 5, $height - 15, $width - ($width * 2 / 4) +10, $height - 15, $yellow);
-		imagefttext($image, 7, 0, $width - ($width * 3 / 4) + 20, $height - 12, $black, $fontfile, $GLOBALS["graphmonth2".$GLOBALS[lang]]);
-		imagefttext($image, 7, 0, $width - ($width * 2 / 4) +25, $height - 12, $black, $fontfile, $GLOBALS["graphmonth3".$GLOBALS[lang]]);
 		imagepng($image, $image_name);
 		imagedestroy($image);
 		return '<p>' . $GLOBALS["graphmonth1".$GLOBALS[lang]] . '</p>';
