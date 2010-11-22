@@ -1,322 +1,393 @@
-	<?php
+<?php
 	/*
-		Simple solarmax visualizer php program written by zagibu@gmx.ch in July 2010
-		This program was originally licensed under WTFPL 2 http://sam.zoy.org/wtfpl/
-		Improvements by Frank Lassowski flassowski@gmx.de in August 2010
-		This program is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
+	Simple solarmax visualizer php program written by zagibu@gmx.ch in July 2010
+	This program was originally licensed under WTFPL 2 http://sam.zoy.org/wtfpl/
+	Improvements by Frank Lassowski flassowski@gmx.de in August 2010
+	This program is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
 
-		To run this program your server must have PHP and the gd extension enabled.
-		Put this and all the other files contained in 'solarertrag.tar.gz'
-		in your web directory, for example /var/www/ and call it with
-		http://yourwebadress/solarertrag.php
+	To run this program your server must have PHP and the gd extension enabled.
+	Put this and all the other files contained in 'solarertrag.tar.gz'
+	in your web directory, for example /var/www/ and call it with
+	http://yourwebadress/solarertrag.php
 	*/
-		// select table by page query ?wr=
-		// to hopefully avoid SQL injections we only accept numbers :-)
-		if (empty($_GET['wr'])) {
-			$wr = 1;
+	
+	// We want to start a new session!
+	//session_name("Solarmax Watcher");
+	//session_start();
+
+	// select table by page query ?wr=
+	// to hopefully avoid SQL injections we only accept numbers :-)
+	if (empty($_GET['wr'])) {
+		$wr = 1;
+	}
+	elseif (preg_match('/[^0-9]/', $_GET['wr'])) {
+		$wr = 1;
+	}
+	else {
+		$wr = $_GET['wr'];
+	}
+	$table="log{$wr}";
+
+	// which language does the users browser prefer
+	$lang=substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+	if ($lang <> "de" && $lang <> "en" && $lang <> "nl" && $lang <> "fr" && $lang <> "es" && $lang <> "it")
+		$lang="en";
+
+	$sublang=substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 3, 2);
+	if ($sublang <> "de" && $sublang <> "en" && $sublang <> "nl" && $sublang <> "fr" && $sublang <> "es" && $sublang <> "it" && $sublang <> "us" && $sublang <> "ru" && $sublang <> "ch")
+		$sublang = "us";
+
+	// include language file
+	include 'lang.php';
+       
+	// if we want to switch to seperate language files we have to use seperate language files and the following line instead
+	// include 'lang_' . $lang . '.php';
+
+	// Which font to use in the graphs
+	// for Windows based servers look at C:/Windows/Fonts for appropriate fonts
+	$fontfile="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf";
+       
+	// Check POST vars
+/*
+	if (!empty($_POST['showday'])) $showday = $_POST['showday'];
+	else $showday = array("yield", "accu", "pred", "volt", "temp", "grid");
+	$showday_text = implode(' ',$showday);
+
+	if (!empty($_POST['showmonth'])) $showmonth = $_POST['showmonth'];
+	else $showmonth = array("numbers", "pred", "avg", "grid");
+	$showmonth_text = implode(' ',$showmonth);
+
+	if (!empty($_POST['showyear'])) $showyear = $_POST['showyear'];
+	else $showyear = array("numbers", "percent", "grid");
+	$showyear_text = implode(' ',$showyear);
+*/
+	$input_array = array("yield", "accu", "predday", "volt", "temp", "gridday", "numbersmonth", "predmonth", "avg", "gridmonth", "numbersyear", "percent", "gridyear");
+	$input_array2 = array("Ertrag \n", "akkumulierter Ertrag \n", "Vorhersage \n", "Spannung \n", "Temperatur \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Vorhersage \n", "Durchschnitt \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Prozent \n", "Gitter </p>\n</div>\n");
+
+	if (!empty($_POST['show'])) $show = $_POST['show'];
+	else $show = $input_array;
+	$show_text = implode(' ',$show);
+
+	$period = $_POST['period'];
+	if (!in_array($period, array('day', 'month', 'year')))
+		$period = 'day';
+	$day = $_POST['day'];
+	if (empty($day))
+		$day = date('j');
+	$month = $_POST['month'];
+	if (empty($month))
+		$month = date('n');
+	$year = $_POST['year'];
+	if (empty($year))
+		$year = date('Y');
+	if (!preg_match("/[0-9]?[0-9]\.[0-9]?[0-9]\.[0-9][0-9][0-9][0-9]/", "$day.$month.$year"))
+		die(${error1.$lang} . "($day, $month, $year)");
+	if (!checkdate($month, $day, $year))
+		die(${error2.$lang} . "$day.$month.$year");
+
+	// include daily predictions
+	include 'solarertrag_day_predictions.php';
+
+	// Connect to mysql database
+	@mysql_connect('localhost', 'user', 'password') or die(mysql_error());
+	@mysql_select_db('solarmax') or die(mysql_error());
+
+	// Check which view to use and define start and end limits
+	switch ($period) {
+		case 'day':
+			$start['day'] = $day;
+			$start['month'] = $month;
+			$start['year'] = $year;
+			$end = $start;
+			break;
+		case 'month':
+			$start['day'] = 1;
+			$start['month'] = $month;
+			$start['year'] = $year;
+			$end['day'] = 31;
+			$end['month'] = $month;
+			$end['year'] = $year;
+			break;
+		case 'year':
+			$start['day'] = 1;
+			$start['month'] = 1;
+			$start['year'] = $year;
+			$end['day'] = 31;
+			$end['month'] = 12;
+			$end['year'] = $year;
+			break;
+	}
+
+	// Make sure we define a valid end date
+	while (!checkdate($end['month'], $end['day'], $end['year']))
+		$end['day']--;
+
+	// Set predictions for chosen date
+	$pred_day = ${'d_'.date('m', mktime(0, 0, 0, $start['month'], $start['day'], $start['year']))};
+
+	// Include time in start and end delimiters
+	$start = date('Y-m-d H:i:s', mktime(0, 0, 0, $start['month'], $start['day'], $start['year']));
+	$end = date('Y-m-d H:i:s', mktime(23, 59, 59, $end['month'], $end['day'], $end['year']));
+
+	// Remove old image files
+	foreach (glob("img/*.png") as $image_name)
+		unlink($image_name);
+
+	// Create a filename with appended date to fool browser caches
+	$image_name = 'img/data_' . date('YmdHis') . '.png';
+
+	// Check the desired view again and include and call the proper function
+	$input0 = "<input style=\"DISPLAY:none\" type=\"checkbox\" name=\"show[]\" value=\"";
+	$input1 = "<input type=\"checkbox\" name=\"show[]\" value=\"";
+	$input2 = "\" onclick=\"refreshDiagram()\" ";
+	$input3 = "checked=\"checked\" >";
+	$input4 = "\n<div style=\"font-size:0.7em\">\n<p>";
+	switch ($period) {
+		case 'day':
+		include 'drawday.php';
+		$text = draw_day($start, $end, $pred_day, $image_name, $table, $fontfile, $show_text).$input4;
+		for ($i = 0; $i <= 5; $i++) {
+			$text = $text.$input1.$input_array[$i].$input2;
+			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3.$input_array2[$i];
+			else $text = $text.">".$input_array2[$i];
 		}
-		elseif (preg_match('/[^0-9]/', $_GET['wr'])) {
-			$wr = 1;
+		for ($i = 6; $i <= 12; $i++) {
+			$text = $text.$input0.$input_array[$i]."\" ";
+			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3."\n";
+			else $text = $text.">\n";
 		}
-		else {
-			$wr = $_GET['wr'];
+		break;
+
+		case 'month':
+		include 'drawmonth.php';
+		$text = draw_month($start, $end, $pred_day, $image_name, $table, $fontfile, $show_text).$input4;
+		for ($i = 6; $i <= 9; $i++) {
+			$text = $text.$input1.$input_array[$i].$input2;
+			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3.$input_array2[$i];
+			else $text = $text.">".$input_array2[$i];
 		}
-		$table="log{$wr}";
-
-		// which language does the users browser prefer
-		$lang=substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-		if ($lang <> "de" && $lang <> "en" && $lang <> "nl" && $lang <> "fr" && $lang <> "es" && $lang <> "it")
-			$lang="en";
-
-		// include language file
-		include 'lang.php';
-
-		// if we want to switch to seperate language files we have to use the following line instead
-		//include 'lang_' . $lang . '.php';
-
-		// Which font to use in the graphs
-		// for Windows based servers look at C:/Windows/Fonts for appropriate fonts
-		$fontfile="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf";
-
-		// Check POST vars
-		if (!empty($_POST['showday'])) $showday = $_POST['showday'];
-		else $showday = array("yield", "accu", "pred", "volt", "temp", "grid");
-		$showday_text = implode(' ',$showday);
-
-		if (!empty($_POST['showmonth'])) $showmonth = $_POST['showmonth'];
-		else $showmonth = array("numbers", "pred", "avg", "grid");
-		$showmonth_text = implode(' ',$showmonth);
-
-		if (!empty($_POST['showyear'])) $showyear = $_POST['showyear'];
-		else $showyear = array("numbers", "percent", "grid");
-		$showyear_text = implode(' ',$showyear);
-
-		$period = $_POST['period'];
-		if (!in_array($period, array('day', 'month', 'year')))
-			$period = 'day';
-		$day = $_POST['day'];
-		if (empty($day))
-			$day = date('j');
-		$month = $_POST['month'];
-		if (empty($month))
-			$month = date('n');
-		$year = $_POST['year'];
-		if (empty($year))
-			$year = date('Y');
-		if (!preg_match("/[0-9]?[0-9]\.[0-9]?[0-9]\.[0-9][0-9][0-9][0-9]/", "$day.$month.$year"))
-			die(${error1.$lang} . "($day, $month, $year)");
-		if (!checkdate($month, $day, $year))
-			die(${error2.$lang} . "$day.$month.$year");
-
-		// include daily predictions
-		include 'solarertrag_day_predictions.php';
-
-		// Connect to mysql database
-		@mysql_connect('localhost', 'user', 'password') or die(mysql_error());
-		@mysql_select_db('solarmax') or die(mysql_error());
-
-		// Check which view to use and define start and end limits
-		switch ($period) {
-			case 'day':
-				$start['day'] = $day;
-				$start['month'] = $month;
-				$start['year'] = $year;
-				$end = $start;
-				break;
-			case 'month':
-				$start['day'] = 1;
-				$start['month'] = $month;
-				$start['year'] = $year;
-				$end['day'] = 31;
-				$end['month'] = $month;
-				$end['year'] = $year;
-				break;
-			case 'year':
-				$start['day'] = 1;
-				$start['month'] = 1;
-				$start['year'] = $year;
-				$end['day'] = 31;
-				$end['month'] = 12;
-				$end['year'] = $year;
-				break;
+		for ($i = 0; $i <= 5; $i++) {
+			$text = $text.$input0.$input_array[$i]."\" ";
+			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3."\n";
+			else $text = $text.">\n";
 		}
-
-		// Make sure we define a valid end date
-		while (!checkdate($end['month'], $end['day'], $end['year']))
-			$end['day']--;
-
-		// Set predictions for chosen date
-		$pred_day = ${'d_'.date('m', mktime(0, 0, 0, $start['month'], $start['day'], $start['year']))};
-
-		// Include time in start and end delimiters
-		$start = date('Y-m-d H:i:s', mktime(0, 0, 0, $start['month'], $start['day'], $start['year']));
-		$end = date('Y-m-d H:i:s', mktime(23, 59, 59, $end['month'], $end['day'], $end['year']));
-
-		// Remove old image files
-		foreach (glob("img/*.png") as $image_name)
-			unlink($image_name);
-
-		// Create a filename with appended date to fool browser caches
-		$image_name = 'img/data_' . date('YmdHis') . '.png';
-
-		// Check the desired view again and include and call the proper function
-		$input2 = "\" onclick=\"refreshDiagram()\" ";
-		$input3 = "checked=\"checked\" >";
-		$input4 = "\n<div style=\"font-size:0.7em\">\n<p>";
-		switch ($period) {
-			case 'day':
-				$input1 = "<input type=\"checkbox\" name=\"showday[]\" value=\" ";
-				include 'drawday.php';
-				$text = draw_day($start, $end, $pred_day, $image_name, $table, $fontfile, $showday_text).$input4;
-				$value = array("yield", "accu", "pred", "volt", "temp", "grid", "Ertrag \n", "akkumulierter Ertrag \n", "Vorhersage \n", "Spannung \n", "Temperatur \n", "Gitter </p>\n</div>\n");
-				for ($i = 0; $i <= 5; $i++) {
-					$text = $text.$input1.$value[$i].$input2;
-					if (preg_match("/".$value[$i]."/", $showday_text)) $text = $text.$input3.$value[$i+6];
-					else $text = $text.">".$value[$i+6];
-				}
-				break;
-			case 'month':
-				$input1 = "<input type=\"checkbox\" name=\"showmonth[]\" value=\" ";
-				include 'drawmonth.php';
-				$text = draw_month($start, $end, $pred_day, $image_name, $table, $fontfile, $showmonth_text).$input4;
-				$value = array("numbers", "pred", "avg", "grid", "Zahlen \n", "Vorhersage \n", "Durchschnitt \n", "Gitter </p>\n</div>\n");
-				for ($i = 0; $i <= 3; $i++) {
-					$text = $text.$input1.$value[$i].$input2;
-					if (preg_match("/".$value[$i]."/", $showmonth_text)) $text = $text.$input3.$value[$i+4];
-					else $text = $text.">".$value[$i+4];
-				}
-				break;
-			case 'year':
-				$input1 = "<input type=\"checkbox\" name=\"showyear[]\" value=\" ";
-				include 'drawyear.php';
-				$text = draw_year($start, $end, $pred_month, $image_name, $table, $fontfile, $showyear_text).$input4;
-				$value = array("numbers", "percent", "grid", "Zahlen \n", "Prozent \n", "Gitter </p>\n</div>\n");
-				for ($i = 0; $i <= 2; $i++) {
-					$text = $text.$input1.$value[$i].$input2;
-					if (preg_match("/".$value[$i]."/", $showyear_text)) $text = $text.$input3.$value[$i+3];
-					else $text = $text.">".$value[$i+3];
-				}
-				break;
+		for ($i = 10; $i <= 12; $i++) {
+			$text = $text.$input0.$input_array[$i]."\" ";
+			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3."\n";
+			else $text = $text.">\n";
 		}
-	?>
+		break;
 
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-           "http://www.w3.org/TR/html4/strict.dtd">
-    <html>
-       <head>
-          <title>Solarmax Watcher</title>
-          <meta name="generator" content="Bluefish 1.0.7">
-          <meta name="copyright" content="Frank Lassowski">
-          <meta name="date" content="2010-11-20T18:55:51+0100">
-          <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-          <meta http-equiv="expires" content="0">
-          <link rel="stylesheet" type="text/css" href="solarertrag.css">
-          <link rel="shortcut icon" href="img/sun.ico" type="image/x-icon">
-       </head>
-       <body>
-       <div id="wrap">
-       <?php include 'sitehead.php'; // if you don't want to have a title image delete this line ?>
-          <form name="visualizer" method="post" action="<?php echo "solarertrag.php?wr=" . $wr ?>">
-             <table cellspacing="6">
-             	<tr align="center">
-             	   <th colspan="3"><?php echo ${text11.$lang}; ?></th>
-             	   <td></td>
-             	   <td><?php echo ${text12.$lang}; ?>:</td>
-             	   <td><?php echo ${text13.$lang}; ?>:</td>
-             	   <td><?php echo ${text14.$lang}; ?>:</td>
-             	</tr>
-                <tr align="center">
-                   <td><input type="radio" name="period" value="day" onclick="refreshDiagram()" <?php if ($period == 'day') echo "checked=\"checked\""; ?>> <?php echo ${text12.$lang}; ?></td>
-                   <td><input type="radio" name="period" value="month" onclick="refreshDiagram()" <?php if ($period == 'month') echo "checked=\"checked\""; ?>> <?php echo ${text13.$lang}; ?></td>
-                   <td><input type="radio" name="period" value="year" onclick="refreshDiagram()" <?php if ($period == 'year') echo "checked=\"checked\""; ?>> <?php echo ${text14.$lang}; ?></td>
-                   <td><input type="submit" name="period" value="<?php echo ${text15.$lang}; ?>" onclick="setActualDate()"></td>
-                   <td>
-                      <input type="button" style="width:22px" onclick="decreaseDay()" value="<">
-                      <input name="day" type="text" size="2" maxlength="2" value="<?php echo $day; ?>">
-                      <input type="button" style="width:22px" onclick="increaseDay()" value=">">
-                   </td>
-                   <td>
-                      <input type="button" style="width:22px" onclick="decreaseMonth()" value="<">
-                      <input name="month" type="text" size="2" maxlength="2" value="<?php echo $month; ?>">
-                      <input type="button" style="width:22px" onclick="increaseMonth()" value=">">
-                   </td>
-                   <td>
-                      <input type="button" style="width:22px" onclick="decreaseYear()" value="<">
-                      <input name="year" type="text" size="4" maxlength="4" value="<?php echo $year; ?>">
-                      <input type="button" style="width:22px" onclick="increaseYear()" value=">">
-                   </td>
-                   <td>
-                      <input type="submit" value="Go">
-                   </td>
-                </tr>
-             </table>
-          <table cellspacing="6">
-             <tr>
-          <?php
-          $result = @mysql_query("SELECT pac, kdy, kmt, kyr, kt0, tkk, sys FROM $table ORDER BY created DESC LIMIT 1") or die(mysql_error());
-          echo '<td width="30%">', ${text1.$lang}, '</td><td class="right2"><b>', mysql_result( $result, 0, 0), '</b> Watt</td>'."\n";
-          echo '<td class="left">', ${text2.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 1) / 10, '</b> kWh</td></tr>'."\n";          
-          echo '<tr><td width="30%">', ${text3.$lang}, '</td><td class="right2"><b>', mysql_result( $result, 0, 5), '</b> °C</td>'."\n";
-          echo '<td class="left">', ${text4.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 2), '</b> kWh</td></tr>'."\n";
-          echo '<tr><td width="30%">', ${text5.$lang}, '</td><td class="right2"><b>', round( mysql_result( $result, 0, 3) * 0.683 / 1000, 3), '</b> to</td>'."\n";
-          echo '<td class="left">', ${text6.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 3), '</b> kWh</td></tr>'."\n";
-          echo '<tr><td width="30%">', ${text7.$lang}, '</td><td class="right2"><b>', round( mysql_result( $result, 0, 4) * 0.683 / 1000, 3), '</b> to</td>'."\n";
-          echo '<td class="left">', ${text8.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 4), '</b> kWh</td></tr>'."\n";
-          echo '<tr><td width="30%"><b>', ${text9.$lang}, '</b></td><td class="right2"><b>', ${'_'.mysql_result( $result, 0, 6).$lang}, '</b></td>'."\n";
-          echo '<td class="left">', ${text10.$lang}, '</td><td align="right"><b>', round( mysql_result( $result, 0, 4) * 0.3405, 2), '</b> EUR</td>'."\n";
-          echo '</tr></table>';
-          echo $text;
-          echo "</form>\n";
-          ?>
-          <img src="<?php echo $image_name; ?>" name="Sonneneinstrahlungsdiagramm" alt="Sonneneinstrahlungsdiagramm">
+		case 'year':
+		include 'drawyear.php';
+		$text = draw_year($start, $end, $pred_month, $image_name, $table, $fontfile, $show_text).$input4;
+		for ($i = 10; $i <= 12; $i++) {
+			$text = $text.$input1.$input_array[$i].$input2;
+			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3.$input_array2[$i];
+			else $text = $text.">".$input_array2[$i];
+		}
+		for ($i = 0; $i <= 9; $i++) {
+			$text = $text.$input0.$input_array[$i]."\" ";
+			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3."\n";
+			else $text = $text.">\n";
+		}
+		break;
+	}
+?>
 
-          <script type="text/javascript"><!--
-             function refreshDiagram() {
-                document.forms.visualizer.submit();
-             }
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<title>Solarmax Watcher</title>
+		<meta name="generator" content="Bluefish 1.0.7">
+		<meta name="copyright" content="Frank Lassowski">
+		<meta name="date" content="2010-11-22T02:22:52+0100">
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta http-equiv="expires" content="0">
+		<link rel="stylesheet" type="text/css" href="solarertrag_test.css">
+		<link rel="shortcut icon" href="img/sun.ico" type="image/x-icon">
+	</head>
+	<body>
+		<div id="wrap">
+		<?php include 'sitehead.php'; // if you don't want to have a title image delete this line
+		?>
+			<form name="visualizer" method="post" action="<?php echo "solarertrag.php?wr=" . $wr ?>">
+				<table cellspacing="6">
+					<tr align="center">
+						<th colspan="3"><?php echo ${text11.$lang}; ?></th>
+						<td></td>
+						<td><?php echo ${text12.$lang}; ?>:</td>
+						<td><?php echo ${text13.$lang}; ?>:</td>
+						<td><?php echo ${text14.$lang}; ?>:</td>
+					</tr>
+					<tr align="center">
+						<td><input type="radio" name="period" value="day" onclick="refreshDiagram()" <?php if ($period == 'day') echo "checked=\"checked\""; ?>> <?php echo ${text12.$lang}; ?></td>
+						<td><input type="radio" name="period" value="month" onclick="refreshDiagram()" <?php if ($period == 'month') echo "checked=\"checked\""; ?>> <?php echo ${text13.$lang}; ?></td>
+						<td><input type="radio" name="period" value="year" onclick="refreshDiagram()" <?php if ($period == 'year') echo "checked=\"checked\""; ?>> <?php echo ${text14.$lang}; ?></td>
+						<td><input type="submit" name="period" value="<?php echo ${text15.$lang}; ?>" onclick="setActualDate()"></td>
+						<td>
+							<input type="button" style="width:22px" onclick="decreaseDay()" value="<">
+							<input name="day" type="text" size="2" maxlength="2" value="<?php echo $day; ?>">
+							<input type="button" style="width:22px" onclick="increaseDay()" value=">">
+						</td>
+						<td>
+							<input type="button" style="width:22px" onclick="decreaseMonth()" value="<">
+							<input name="month" type="text" size="2" maxlength="2" value="<?php echo $month; ?>">
+							<input type="button" style="width:22px" onclick="increaseMonth()" value=">">
+						</td>
+						<td>
+							<input type="button" style="width:22px" onclick="decreaseYear()" value="<">
+							<input name="year" type="text" size="4" maxlength="4" value="<?php echo $year; ?>">
+							<input type="button" style="width:22px" onclick="increaseYear()" value=">">
+						</td>
+						<td>
+							<input type="submit" value="Go">
+						</td>
+					</tr>
+				</table>
+					<table cellspacing="6">
+						<tr>
+							<?php
+          /* currency echange rates
+   Of course you can take static values for the exchange rates,
+   but it's much nicer if these are up to date.
+   For that it is needed that the bash script 'currency.sh' is
+   run once or twice a day to keep the values in the file 'currency.txt'
+   up to date.
+   If you prefer static values comment out the following 
 
-             window.setTimeout("refreshDiagram()", 60000);
+   $fd = fopen ("currency.txt", "r");
+   while (!feof ($fd))
+   {
+      //$buffer = fgets($fd, 4096);
+      $lines[] = fgets($fd, 4096);
+   }
+   fclose ($fd);
+   
+   $currde = 1;
+   $currtxtde = "EUR";
+   $curren = $lines[1];
+   $currtxten = "£";
+   $currnl = 1;
+   $currtxtnl = "EUR";
+   $currfr = 1;
+   $currtxtfr = "EUR";
+   $curres = 1;
+   $currtxtes = "EUR";
+   $currit = 1;
+   $currtxtit = "EUR";
+   $currch = $lines[3];
+   $currtxtch = "CHF";
+   $currus = $lines[0];
+   $currtxtus = "US$";
+   $currru = $lines[2];
+   $currtxtru = "руб";
+*/
+								$result = @mysql_query("SELECT pac, kdy, kmt, kyr, kt0, tkk, sys FROM $table ORDER BY created DESC LIMIT 1") or die(mysql_error());
+								echo '<td width="30%">', ${text1.$lang}, '</td><td class="right2"><b>', mysql_result( $result, 0, 0), '</b> Watt</td>'."\n";
+								echo '<td class="left">', ${text2.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 1) / 10, '</b> kWh</td></tr>'."\n";          
+								echo '<tr><td width="30%">', ${text3.$lang}, '</td><td class="right2"><b>', mysql_result( $result, 0, 5), '</b> °C</td>'."\n";
+								echo '<td class="left">', ${text4.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 2), '</b> kWh</td></tr>'."\n";
+								echo '<tr><td width="30%">', ${text5.$lang}, '</td><td class="right2"><b>', round( mysql_result( $result, 0, 3) * 0.683 / 1000, 3), '</b> to</td>'."\n";
+								echo '<td class="left">', ${text6.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 3), '</b> kWh</td></tr>'."\n";
+								echo '<tr><td width="30%">', ${text7.$lang}, '</td><td class="right2"><b>', round( mysql_result( $result, 0, 4) * 0.683 / 1000, 3), '</b> to</td>'."\n";
+								echo '<td class="left">', ${text8.$lang}, '</td><td align="right"><b>', mysql_result( $result, 0, 4), '</b> kWh</td></tr>'."\n";
+								echo '<tr><td width="30%"><b>', ${text9.$lang}, '</b></td><td class="right2"><b>', ${'_'.mysql_result( $result, 0, 6).$lang}, '</b></td>'."\n";
+//								echo '<td class="left">', ${text10.$lang}, '</td><td align="right"><b>', round( mysql_result( $result, 0, 4) * 0.3405 * ${curr.$sublang}, 2), '</b> ', ${currtxt.$sublang}, '</td>'."\n";
+								echo '<td class="left">', ${text10.$lang}, '</td><td align="right"><b>', round( mysql_result( $result, 0, 4) * 0.3405, 2), '</b> EUR</td>'."\n";
+								echo '</tr></table>'."\n";
+								echo $text;
+								echo "</form>\n";
+							?>
+							<img src="<?php echo $image_name; ?>" name="Sonneneinstrahlungsdiagramm" alt="Sonneneinstrahlungsdiagramm">
+							<script type="text/javascript"><!--
+								function refreshDiagram() {
+									document.forms.visualizer.submit();
+								}
 
-             function checkDate(day, month, year) {
-                var daysOfMonth = new Array(31, 30, 31, 28, 31, 30, 31, 31, 30, 31, 30, 31);
-                if ((year % 4 == 0) && (month == 4))
-                   return day > 0 && day < 30 && month > 0 && month < 13 && year > 0 && year < 32000;
-                else
-                   return year > 0 && year < 10000 && month > 0 && month < 13 && day > 0 && day <= daysOfMonth[month - 1];
-             }
+								window.setTimeout("refreshDiagram()", 60000);
 
-             function decreaseDay() {
-                var day = parseInt(document.forms.visualizer.day.value, 10) - 1;
-                if (day < 1) day = 31;
-                var month = parseInt(document.forms.visualizer.month.value, 10);
-                var year = parseInt(document.forms.visualizer.year.value, 10);
-                while (!checkDate(day, month, year))
-                   day--;
-                document.forms.visualizer.day.value = day;
-                document.forms.visualizer.submit();
-             }
+								function checkDate(day, month, year) {
+									var daysOfMonth = new Array(31, 30, 31, 28, 31, 30, 31, 31, 30, 31, 30, 31);
+									if ((year % 4 == 0) && (month == 4))
+										return day > 0 && day < 30 && month > 0 && month < 13 && year > 0 && year < 32000;
+									else
+										return year > 0 && year < 10000 && month > 0 && month < 13 && day > 0 && day <= daysOfMonth[month - 1];
+								}
 
-             function increaseDay() {
-                var day = parseInt(document.forms.visualizer.day.value, 10) + 1;
-                if (day > 31) day = 1;
-                var month = parseInt(document.forms.visualizer.month.value, 10);
-                var year = parseInt(document.forms.visualizer.year.value, 10);
-                while (!checkDate(day, month, year))
-                   day = (day % 31) + 1;
-                document.forms.visualizer.day.value = day;
-                document.forms.visualizer.submit();
-             }
+								function decreaseDay() {
+									var day = parseInt(document.forms.visualizer.day.value, 10) - 1;
+									if (day < 1) day = 31;
+									var month = parseInt(document.forms.visualizer.month.value, 10);
+									var year = parseInt(document.forms.visualizer.year.value, 10);
+									while (!checkDate(day, month, year))
+										day--;
+									document.forms.visualizer.day.value = day;
+									document.forms.visualizer.submit();
+								}
 
-             function decreaseMonth() {
-                var day = parseInt(document.forms.visualizer.day.value, 10);
-                var month = parseInt(document.forms.visualizer.month.value, 10) - 1;
-                if (month < 1) month = 12;
-                var year = parseInt(document.forms.visualizer.year.value, 10);
-                document.forms.visualizer.month.value = month;
-                document.forms.visualizer.submit();
-             }
+								function increaseDay() {
+									var day = parseInt(document.forms.visualizer.day.value, 10) + 1;
+									if (day > 31) day = 1;
+									var month = parseInt(document.forms.visualizer.month.value, 10);
+									var year = parseInt(document.forms.visualizer.year.value, 10);
+									while (!checkDate(day, month, year))
+										day = (day % 31) + 1;
+									document.forms.visualizer.day.value = day;
+									document.forms.visualizer.submit();
+								}
 
-             function increaseMonth() {
-                var day = parseInt(document.forms.visualizer.day.value, 10);
-                var month = parseInt(document.forms.visualizer.month.value, 10) + 1;
-                if (month > 12) month = 1;
-                var year = parseInt(document.forms.visualizer.year.value, 10);
-                document.forms.visualizer.month.value = month;
-                document.forms.visualizer.submit();
-             }
+								function decreaseMonth() {
+									var day = parseInt(document.forms.visualizer.day.value, 10);
+									var month = parseInt(document.forms.visualizer.month.value, 10) - 1;
+									if (month < 1) month = 12;
+									var year = parseInt(document.forms.visualizer.year.value, 10);
+									document.forms.visualizer.month.value = month;
+									document.forms.visualizer.submit();
+								}
 
-             function decreaseYear() {
-                var day = parseInt(document.forms.visualizer.day.value, 10);
-                var month = parseInt(document.forms.visualizer.month.value, 10);
-                var year = parseInt(document.forms.visualizer.year.value, 10) - 1;
-                if (year < 1) year = 9999;
-                document.forms.visualizer.year.value = year;
-                document.forms.visualizer.submit();
-             }
+								function increaseMonth() {
+									var day = parseInt(document.forms.visualizer.day.value, 10);
+									var month = parseInt(document.forms.visualizer.month.value, 10) + 1;
+									if (month > 12) month = 1;
+									var year = parseInt(document.forms.visualizer.year.value, 10);
+									document.forms.visualizer.month.value = month;
+									document.forms.visualizer.submit();
+								}
 
-             function increaseYear() {
-                var day = parseInt(document.forms.visualizer.day.value, 10);
-                var month = parseInt(document.forms.visualizer.month.value, 10);
-                var year = parseInt(document.forms.visualizer.year.value, 10) + 1;
-                if (year > 9999) year = 1;
-                document.forms.visualizer.year.value = year;
-                document.forms.visualizer.submit();
-             }
+								function decreaseYear() {
+									var day = parseInt(document.forms.visualizer.day.value, 10);
+									var month = parseInt(document.forms.visualizer.month.value, 10);
+									var year = parseInt(document.forms.visualizer.year.value, 10) - 1;
+									if (year < 1) year = 9999;
+									document.forms.visualizer.year.value = year;
+									document.forms.visualizer.submit();
+								}
 
-             function setActualDate() {
-                var now = new Date();
-                var day = now.getDate();
-                var month = now.getMonth();
-                var year = now.getFullYear();
-                document.forms.visualizer.day.value = day;
-                document.forms.visualizer.month.value = month + 1;
-                document.forms.visualizer.year.value = year;
-                document.forms.visualizer.submit();
-             }
-          --></script>
-       </div>
-       <div id="footer">
-       <p><a href="https://sourceforge.net/projects/solarmaxwatcher/">Solarmax Watcher at Sourceforge</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; <a href="http://URL/to/your/impressum">Impressum</a> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; Design by <a href="mailto:info.lassowski.dyndns.org@arcor.de?subject=SolarMax Watcher">Frank Lassowski</a></p>
-       </div>
-       </body>
-    </html>
+								function increaseYear() {
+									var day = parseInt(document.forms.visualizer.day.value, 10);
+									var month = parseInt(document.forms.visualizer.month.value, 10);
+									var year = parseInt(document.forms.visualizer.year.value, 10) + 1;
+									if (year > 9999) year = 1;
+									document.forms.visualizer.year.value = year;
+									document.forms.visualizer.submit();
+								}
+
+								function setActualDate() {
+									var now = new Date();
+									var day = now.getDate();
+									var month = now.getMonth();
+									var year = now.getFullYear();
+									document.forms.visualizer.day.value = day;
+									document.forms.visualizer.month.value = month + 1;
+									document.forms.visualizer.year.value = year;
+									document.forms.visualizer.submit();
+								}
+							--></script>
+						</div>
+						<div id="footer">
+							<p><a href="https://sourceforge.net/projects/solarmaxwatcher/">Solarmax Watcher at Sourceforge</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; <a href="http://URL/to/your/impressum">Impressum</a> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; Design by <a href="mailto:info.lassowski.dyndns.org@arcor.de?subject=SolarMax Watcher">Frank Lassowski</a></p>
+						</div>
+					</body>
+				</html>
