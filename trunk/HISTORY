@@ -8,7 +8,7 @@ Bug fixes, new features und updates for:
 
 Version 0.3.0
 - new		: introducing switches to turn on/off parts of the graph
-- new		: the graph's switches are stored in $_POST
+- new		: the graph's switches are stored in $_POST and in a cookie named "values"
 - new		: only needed things are drawn
 
 Version 0.2.3

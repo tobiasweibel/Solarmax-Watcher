@@ -10,13 +10,33 @@
 	in your web directory, for example /var/www/ and call it with
 	http://yourwebadress/solarertrag.php
 	*/
-	
-	// We want to start a new session!
-	//session_name("Solarmax Watcher");
-	//session_start();
+
+	//check cookie and $_POST['show']
+
+	$input_array = array("yield", "accu", "predday", "volt", "temp", "gridday", "numbersmonth", "predmonth", "avg", "gridmonth", "numbersyear", "percent", "gridyear");
+	$input_array2 = array("Ertrag \n", "akkumulierter Ertrag \n", "Vorhersage \n", "Spannung \n", "Temperatur \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Vorhersage \n", "Durchschnitt \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Prozent \n", "Gitter </p>\n</div>\n");
+
+	if (empty($_POST['show']) and (!isset($_COOKIE['values']))) {
+		$show = $input_array;
+		setcookie("values",implode(' ', $input_array), time()+7*24*3600);
+	}
+	elseif (!empty($_POST['show']) and (!isset($_COOKIE['values']))){
+		$show = $_POST['show'];
+		setcookie("values",implode(' ', $show), time()+7*24*3600);
+	}
+	elseif (empty($_POST['show']) and isset($_COOKIE['values'])) {
+		$show = array($_COOKIE['values']);
+	}
+	else {
+		$show = $_POST['show'];
+		setcookie("values",implode(' ', $show), time()+7*24*3600);
+	}
+
+	$show_text = implode(' ', $show);
 
 	// select table by page query ?wr=
 	// to hopefully avoid SQL injections we only accept numbers :-)
+
 	if (empty($_GET['wr'])) {
 		$wr = 1;
 	}
@@ -39,35 +59,15 @@
 
 	// include language file
 	include 'lang.php';
-       
+
 	// if we want to switch to seperate language files we have to use seperate language files and the following line instead
 	// include 'lang_' . $lang . '.php';
 
 	// Which font to use in the graphs
 	// for Windows based servers look at C:/Windows/Fonts for appropriate fonts
 	$fontfile="/usr/share/fonts/truetype/ttf-dejavu/DejaVuSansMono.ttf";
-       
-	// Check POST vars
-/*
-	if (!empty($_POST['showday'])) $showday = $_POST['showday'];
-	else $showday = array("yield", "accu", "pred", "volt", "temp", "grid");
-	$showday_text = implode(' ',$showday);
 
-	if (!empty($_POST['showmonth'])) $showmonth = $_POST['showmonth'];
-	else $showmonth = array("numbers", "pred", "avg", "grid");
-	$showmonth_text = implode(' ',$showmonth);
-
-	if (!empty($_POST['showyear'])) $showyear = $_POST['showyear'];
-	else $showyear = array("numbers", "percent", "grid");
-	$showyear_text = implode(' ',$showyear);
-*/
-	$input_array = array("yield", "accu", "predday", "volt", "temp", "gridday", "numbersmonth", "predmonth", "avg", "gridmonth", "numbersyear", "percent", "gridyear");
-	$input_array2 = array("Ertrag \n", "akkumulierter Ertrag \n", "Vorhersage \n", "Spannung \n", "Temperatur \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Vorhersage \n", "Durchschnitt \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Prozent \n", "Gitter </p>\n</div>\n");
-
-	if (!empty($_POST['show'])) $show = $_POST['show'];
-	else $show = $input_array;
-	$show_text = implode(' ',$show);
-
+	// Check other POST vars
 	$period = $_POST['period'];
 	if (!in_array($period, array('day', 'month', 'year')))
 		$period = 'day';
@@ -202,7 +202,7 @@
 		<title>Solarmax Watcher</title>
 		<meta name="generator" content="Bluefish 1.0.7">
 		<meta name="copyright" content="Frank Lassowski">
-		<meta name="date" content="2010-11-22T02:22:52+0100">
+		<meta name="date" content="2010-11-25T01:20:04+0100">
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 		<meta http-equiv="expires" content="0">
 		<link rel="stylesheet" type="text/css" href="solarertrag_test.css">
