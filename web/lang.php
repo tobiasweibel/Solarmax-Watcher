@@ -1,20 +1,19 @@
 <?php
 	/*
-       Simple solarmax visualizer php program written by zagibu@gmx.ch in July 2010
-       This program was originally licensed under WTFPL 2 http://sam.zoy.org/wtfpl/
-       Improvements by Frank Lassowski flassowski@gmx.de in August 2010
-       This program is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
+		Simple solarmax visualizer php program written by zagibu@gmx.ch in July 2010
+		This program was originally licensed under WTFPL 2 http://sam.zoy.org/wtfpl/
+		Improvements by Frank Lassowski flassowski@gmx.de in August 2010
+		This program is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
 
-       language file for SolarMax Watcher
-       
-       english, german by Frank Lassowski
-       nederlands by Rene Essink
-       español by Guillermina Pepe
-       italiano by Giovanna Giambenedetti
-       
-       
-       ####### more translations welcome :-) #######
-   */
+		language file for SolarMax Watcher
+
+		nederlands									by Rene Essink
+		español											by Guillermina Pepe
+		italiano										by Giovanna Giambenedetti
+		english, deutsch, français	by Frank Lassowski
+
+		more translations welcome :-) #######
+	*/
 
 	/* operational codes - there are a lot more, but I don't know them ;-) */
 
@@ -112,7 +111,7 @@
 	$text12en = "day";
 	$text13en = "month";
 	$text14en = "year";
-	$text15sen = "today";
+	$text15en = "today";
 
 	$text1nl = "Actuele vermogen van de generator:";
 	$text2nl = "Dagproductie van de generator:";
@@ -180,7 +179,7 @@
 
 
 	/* strings for the graphs */
- 
+
 	$graphday1de = "Leistung in Watt im Verlauf des Tages, Tagesertrag, Temperatur WR, DC-Spannung";
 	$graphday2de = "gerade Linie: erwarteter Tagesertrag   Kurve: Tagesertrag";
 	$graphday3de = "Temperatur WR";
@@ -190,6 +189,7 @@
 	$graphmonth3de = "durchschnittlicher Tagesertrag";
 	$graphyear1de = "Ertrag in kWh pro Monat";
 	$graphyear2de = "erwarteter Monatsertrag";
+	$switch_arrayde = array("Ertrag \n", "akkumulierter Ertrag \n", "Vorhersage \n", "Spannung \n", "Temperatur \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Vorhersage \n", "Durchschnitt \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Prozent \n", "Gitter </p>\n</div>\n");
 
 	$graphday1en = "power in Watts, todays yield, inverter temperature, generator voltage";
 	$graphday2en = "straight line: expected daily yield   curve: yield today";
@@ -200,6 +200,7 @@
 	$graphmonth3en = "average daily yield";
 	$graphyear1en = "yield in kWh per month";
 	$graphyear2en = "expected monthly yield";
+	$switch_arrayen = array("yield \n", "accumulated yield \n", "prediction \n", "voltage \n", "temperature \n", "grid </p>\n</div>\n", "numbers \n", "prediction \n", "average \n", "grid </p>\n</div>\n", "numbers \n", "percent \n", "grid </p>\n</div>\n");
 
 	$graphday1nl = "vermogen in watt in de daagverloop, dagopbrengst, temperatuur omvormer, dc-spanning";
 	$graphday2nl = "rechte lijn: verwachte dagproductie, curve: dagproductie ";
@@ -210,6 +211,7 @@
 	$graphmonth3nl = "gemiddelte dagopbrengst";
 	$graphyear1nl = "energie in kWh per maand";
 	$graphyear2nl = "verwachte maandopbrengst";
+	$switch_arraynl = array("Ertrag \n", "akkumulierter Ertrag \n", "Vorhersage \n", "Spannung \n", "Temperatur \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Vorhersage \n", "Durchschnitt \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Prozent \n", "Gitter </p>\n</div>\n");
 
 	$graphday1fr = "power in Watts, todays yield, inverter temperature, generator voltage";
 	$graphday2fr = "ligne droite: rendement attendu, courbe: production aujourd'hui";
@@ -220,16 +222,18 @@
 	$graphmonth3fr = "rendement moyen quotidien";
 	$graphyear1fr = "rendement mensuel en kWh";
 	$graphyear2fr = "rendement attendu mensuel";
+	$switch_arrayfr = array("rendement \n", "rendement accumulés \n", "prévisions \n", "tension \n", "température \n", "grille </p>\n</div>\n", "nombres \n", "prévisions \n", "moyenne \n", "grille </p>\n</div>\n", "nombres \n", "pour cent \n", "grille </p>\n</div>\n");
 
-	$graphday1es = "potencia eléctrica en Vatios, producción del día, temperatura del ondulador, tensión del generador solar";
+	$graphday1es = "potencia eléctrica en Vatios, producción del día, temperatura del ondulador, voltaje del generador solar";
 	$graphday2es = "línea recta: producción diaria esperada, curva: producción del día";
 	$graphday3es = "temperatura del ondulador";
-	$graphday4es = "tensión del generador";
+	$graphday4es = "voltaje del generador";
 	$graphmonth1es = "producción diaria en kWh";
 	$graphmonth2es = "producción diaria esperada";
 	$graphmonth3es = "producción promedio por día";
 	$graphyear1es = "producción en kWh por mes";
 	$graphyear2es = "producción mensual esperada";
+	$switch_arrayes = array("producción \n", "producción acumuladas \n", "pronóstico \n", "voltaje \n", "temperatura \n", "la red </p>\n</div>\n", "números \n", "pronóstico \n", "promedio \n", "la red </p>\n</div>\n", "números \n", "por ciento \n", "la red </p>\n</div>\n");
 
 	$graphday1it = "Potenza in Watt, produzione odierna, temperatura dell’invertitore, voltaggio del generatore";
 	$graphday2it = "linea retta: produzione giornaliera prevista   curva: produzione odierna";
@@ -240,6 +244,7 @@
 	$graphmonth3it = "produzione giornaliera media";
 	$graphyear1it = "produzione in kWh al mese";
 	$graphyear2it = "produzione mensile prevista";
+	$switch_arrayit = array("produzione \n", "produzione accumulati \n", "previsione \n", "voltaggio \n", "temperatura \n", "griglia </p>\n</div>\n", "numeri \n", "previsione \n", "media \n", "griglia </p>\n</div>\n", "numeri \n", "per cento \n", "griglia </p>\n</div>\n");
 
 
 	/* error strings */

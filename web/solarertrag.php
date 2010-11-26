@@ -13,12 +13,11 @@
 
 	//check cookie and $_POST['show']
 
-	$input_array = array("yield", "accu", "predday", "volt", "temp", "gridday", "numbersmonth", "predmonth", "avg", "gridmonth", "numbersyear", "percent", "gridyear");
-	$input_array2 = array("Ertrag \n", "akkumulierter Ertrag \n", "Vorhersage \n", "Spannung \n", "Temperatur \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Vorhersage \n", "Durchschnitt \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Prozent \n", "Gitter </p>\n</div>\n");
+	$switch_array = array("yield", "accu", "predday", "volt", "temp", "gridday", "numbersmonth", "predmonth", "avg", "gridmonth", "numbersyear", "percent", "gridyear");
 
 	if (empty($_POST['show']) and (!isset($_COOKIE['values']))) {
-		$show = $input_array;
-		setcookie("values",implode(' ', $input_array), time()+7*24*3600);
+		$show = $switch_array;
+		setcookie("values",implode(' ', $switch_array), time()+7*24*3600);
 	}
 	elseif (!empty($_POST['show']) and (!isset($_COOKIE['values']))){
 		$show = $_POST['show'];
@@ -147,13 +146,13 @@
 		include 'drawday.php';
 		$text = draw_day($start, $end, $pred_day, $image_name, $table, $fontfile, $show_text).$input4;
 		for ($i = 0; $i <= 5; $i++) {
-			$text = $text.$input1.$input_array[$i].$input2;
-			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3.$input_array2[$i];
-			else $text = $text.">".$input_array2[$i];
+			$text = $text.$input1.$switch_array[$i].$input2;
+			if (preg_match("/".$switch_array[$i]."/", $show_text)) $text = $text.$input3.${switch_array.$lang}[$i];
+			else $text = $text.">".${switch_array.$lang}[$i];
 		}
 		for ($i = 6; $i <= 12; $i++) {
-			$text = $text.$input0.$input_array[$i]."\" ";
-			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3."\n";
+			$text = $text.$input0.$switch_array[$i]."\" ";
+			if (preg_match("/".$switch_array[$i]."/", $show_text)) $text = $text.$input3."\n";
 			else $text = $text.">\n";
 		}
 		break;
@@ -162,18 +161,18 @@
 		include 'drawmonth.php';
 		$text = draw_month($start, $end, $pred_day, $image_name, $table, $fontfile, $show_text).$input4;
 		for ($i = 6; $i <= 9; $i++) {
-			$text = $text.$input1.$input_array[$i].$input2;
-			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3.$input_array2[$i];
-			else $text = $text.">".$input_array2[$i];
+			$text = $text.$input1.$switch_array[$i].$input2;
+			if (preg_match("/".$switch_array[$i]."/", $show_text)) $text = $text.$input3.${switch_array.$lang}[$i];
+			else $text = $text.">".${switch_array.$lang}[$i];
 		}
 		for ($i = 0; $i <= 5; $i++) {
-			$text = $text.$input0.$input_array[$i]."\" ";
-			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3."\n";
+			$text = $text.$input0.$switch_array[$i]."\" ";
+			if (preg_match("/".$switch_array[$i]."/", $show_text)) $text = $text.$input3."\n";
 			else $text = $text.">\n";
 		}
 		for ($i = 10; $i <= 12; $i++) {
-			$text = $text.$input0.$input_array[$i]."\" ";
-			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3."\n";
+			$text = $text.$input0.$switch_array[$i]."\" ";
+			if (preg_match("/".$switch_array[$i]."/", $show_text)) $text = $text.$input3."\n";
 			else $text = $text.">\n";
 		}
 		break;
@@ -182,13 +181,13 @@
 		include 'drawyear.php';
 		$text = draw_year($start, $end, $pred_month, $image_name, $table, $fontfile, $show_text).$input4;
 		for ($i = 10; $i <= 12; $i++) {
-			$text = $text.$input1.$input_array[$i].$input2;
-			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3.$input_array2[$i];
-			else $text = $text.">".$input_array2[$i];
+			$text = $text.$input1.$switch_array[$i].$input2;
+			if (preg_match("/".$switch_array[$i]."/", $show_text)) $text = $text.$input3.${switch_array.$lang}[$i];
+			else $text = $text.">".${switch_array.$lang}[$i];
 		}
 		for ($i = 0; $i <= 9; $i++) {
-			$text = $text.$input0.$input_array[$i]."\" ";
-			if (preg_match("/".$input_array[$i]."/", $show_text)) $text = $text.$input3."\n";
+			$text = $text.$input0.$switch_array[$i]."\" ";
+			if (preg_match("/".$switch_array[$i]."/", $show_text)) $text = $text.$input3."\n";
 			else $text = $text.">\n";
 		}
 		break;
@@ -202,7 +201,7 @@
 		<title>Solarmax Watcher</title>
 		<meta name="generator" content="Bluefish 1.0.7">
 		<meta name="copyright" content="Frank Lassowski">
-		<meta name="date" content="2010-11-25T01:20:04+0100">
+		<meta name="date" content="2010-11-26T17:38:34+0100">
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 		<meta http-equiv="expires" content="0">
 		<link rel="stylesheet" type="text/css" href="solarertrag_test.css">
