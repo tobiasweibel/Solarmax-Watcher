@@ -211,7 +211,7 @@
 	$graphmonth3nl = "gemiddelte dagopbrengst";
 	$graphyear1nl = "energie in kWh per maand";
 	$graphyear2nl = "verwachte maandopbrengst";
-	$switch_arraynl = array("Ertrag \n", "akkumulierter Ertrag \n", "Vorhersage \n", "Spannung \n", "Temperatur \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Vorhersage \n", "Durchschnitt \n", "Gitter </p>\n</div>\n", "Zahlen \n", "Prozent \n", "Gitter </p>\n</div>\n");
+	$switch_arraynl = array("Opbrengst \n", "geakkumuleerde Opbrengst \n", "Voorspelling \n", "Spanning \n", "Temperatuur \n", "Net </p>\n</div>\n", "Cijfers \n", "Voorspelling \n", "Gemiddelde \n", "Net </p>\n</div>\n", "Cijfers \n", "Percent \n", "Net </p>\n</div>\n");
 
 	$graphday1fr = "power in Watts, todays yield, inverter temperature, generator voltage";
 	$graphday2fr = "ligne droite: rendement attendu, courbe: production aujourd'hui";
