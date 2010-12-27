@@ -201,10 +201,10 @@
 		<title>Solarmax Watcher</title>
 		<meta name="generator" content="Bluefish 1.0.7">
 		<meta name="copyright" content="Frank Lassowski">
-		<meta name="date" content="2010-11-26T17:38:34+0100">
+		<meta name="date" content="2010-12-27T20:59:54+0100">
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 		<meta http-equiv="expires" content="0">
-		<link rel="stylesheet" type="text/css" href="solarertrag_test.css">
+		<link rel="stylesheet" type="text/css" href="solarertrag.css">
 		<link rel="shortcut icon" href="img/sun.ico" type="image/x-icon">
 	</head>
 	<body>
