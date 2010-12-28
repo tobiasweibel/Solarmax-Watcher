@@ -17,6 +17,8 @@
 #
 bin=/usr/local/bin/smw-logger
 conf=/usr/local/etc/smw-logger.conf
+errorfile=/var/log/solarmax-error.log
+debugfile=/var/log/solarmax-debug.log
 #
 ### ENDE DER VARIABLEN-BESCHREIBUNG
 
@@ -24,7 +26,11 @@ case "$1" in
 	start)
 		echo -n " Starting Solarmax-logger daemon ... "
 		$bin $conf &
-		if [ $? = 0 ]; then
+		mv -f $errorfile $errorfile.prev >/dev/null 2>&1
+		touch $errorfile
+		mv -f $debugfile $debugfile.prev >/dev/null 2>&1
+		touch $debugfile
+				if [ $? = 0 ]; then
 		  echo -e "\033[49;1;32mdone\033[0m"
 		else
 		  echo -e "\033[49;1;31mfailed\033[0m"
