@@ -32,16 +32,17 @@
 		// Width = hours * px per hour + gap
 		$width = ($fall - $rise) * $px_per_hour +157;
 		$maxpac = 5200;
-		$maxkdy = 40;
+		$maxkdy = 50;
 		$maxtkk = 60;
 		$lasttkk = 0;
 		$maxudc = 400;
 		$lastudc = 0;
 		// How many W per diagram line
 		$step_w = 500;
-		$step_kdy = 5;
-		$step_tkk = 8;
-		$step_udc = 40;
+		$step = floor ( $maxpac / $step_w);
+		$step_kdy = $maxkdy / $step;
+		$step_tkk = $maxtkk / $step;
+		$step_udc = $maxudc / $step;
 		// How many px per diagram line (W/px = $step_w / $vert_px)
 		$vert_px = 30;
 		// Height = number of lines * px per line + px per line (for 0-line) + gap
@@ -55,7 +56,7 @@
 
 		if (preg_match('/gridday/', $show_text)) {
 			// Draw horizontal lines with some space above and below
-			for ($i = 0; $i <= $maxpac / $step_w; $i++) {
+			for ($i = 0; $i <= $step; $i++) {
 				// Create horizontal grid line
 				$ypos = $height - $i * $vert_px - $gap;
 				imageline($image, 12, $ypos, $width - 110, $ypos, $gray);
@@ -66,13 +67,13 @@
 				$udc = $i * $step_udc;
 
 				if (preg_match('/yield/', $show_text))
-					imagefttext($image, 7, 0, $width - 109, $ypos + 4, $black, $fontfile, $pac);
+					imagefttext($image, 7, 0, $width - 109, $ypos + 4, $black, $fontfile, floor ($pac));
 				if (preg_match('/accu/', $show_text) | preg_match('/predday/', $show_text))
-					imagefttext($image, 7, 0, $width - 74, $ypos + 4, $blue, $fontfile, $kdy);
+					imagefttext($image, 7, 0, $width - 74, $ypos + 4, $blue, $fontfile, floor ($kdy));
 				if (preg_match('/temp/', $show_text))
-					imagefttext($image, 7, 0, $width - 47, $ypos + 4, $black, $fontfile, $tkk);
+					imagefttext($image, 7, 0, $width - 47, $ypos + 4, $black, $fontfile, floor ($tkk));
 				if (preg_match('/volt/', $show_text))
-					imagefttext($image, 7, 0, $width - 25, $ypos + 4, $red, $fontfile, $udc);
+					imagefttext($image, 7, 0, $width - 25, $ypos + 4, $red, $fontfile, floor ($udc));
 			}
 
 			// Draw vertical lines with some space at the left and right
