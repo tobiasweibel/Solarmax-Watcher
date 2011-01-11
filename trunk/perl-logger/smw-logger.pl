@@ -3,8 +3,8 @@
 #
 # Author: Georg Büchele © 2010 georg.buechele@web.de
 # Co Author: Stefan Riedelsheimer © 2010 stefanos-web@arcor.de
-# PERL Script needed PERL 5.xx and higher 
-# PERL Module needed perl-mysql (muss teilweise nachinstalliert werden.)
+# PERL Script needs PERL 5.xx and higher 
+# PERL Module needs perl-mysql (muss teilweise nachinstalliert werden.)
 # licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
 
 
