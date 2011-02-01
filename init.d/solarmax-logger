@@ -28,9 +28,11 @@ case "$1" in
 		$bin $conf &
 		mv -f $errorfile $errorfile.prev >/dev/null 2>&1
 		touch $errorfile
-		mv -f $debugfile $debugfile.prev >/dev/null 2>&1
-		touch $debugfile
-				if [ $? = 0 ]; then
+      if [ `cat /usr/local/etc/smw-logger.conf | grep -c 'debug=1'` -eq 1 ]; then
+		  mv -f $debugfile $debugfile.prev >/dev/null 2>&1
+		  touch $debugfile
+      fi
+		if [ $? = 0 ]; then
 		  echo -e "\033[49;1;32mdone\033[0m"
 		else
 		  echo -e "\033[49;1;31mfailed\033[0m"

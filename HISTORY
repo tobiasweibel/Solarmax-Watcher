@@ -7,7 +7,8 @@ The initial release for versioning und logging of changes starts with v0.1.0
 Bug fixes, new features und updates for:
 
 Version 0.3.0
--	fix		:	Web - now the variables maxtkk, maxudc, maxkdy in drawday.php take an effect
+- fix    : logger - debug-LogFile now only apears if 'debug=1' is set in Conf-File
+- fix		: Web - now the variables maxtkk, maxudc, maxkdy in drawday.php take an effect
 - fix		: Web - NL-translation
 - new		: logger - log-files will remain for one restart period, for control options 
 - new		: introducing switches to turn on/off parts of the graph
