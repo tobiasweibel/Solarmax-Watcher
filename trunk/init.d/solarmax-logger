@@ -25,13 +25,13 @@ debugfile=/var/log/solarmax-debug.log
 case "$1" in
 	start)
 		echo -n " Starting Solarmax-logger daemon ... "
-		$bin $conf &
 		mv -f $errorfile $errorfile.prev >/dev/null 2>&1
 		touch $errorfile
-      if [ `cat /usr/local/etc/smw-logger.conf | grep -c 'debug=1'` -eq 1 ]; then
+      if [ `cat $conf|grep -c 'debug=1'` -eq 1 ]; then
 		  mv -f $debugfile $debugfile.prev >/dev/null 2>&1
 		  touch $debugfile
       fi
+		$bin $conf &
 		if [ $? = 0 ]; then
 		  echo -e "\033[49;1;32mdone\033[0m"
 		else
