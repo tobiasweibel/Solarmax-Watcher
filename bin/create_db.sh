@@ -13,11 +13,11 @@
     # MYSQL Passwort für den neuen Solarwatch Nutzer
     userpw="userpassword"
     # Anzahl der Wechselrichter = Anzahl der Tabellen
-    anz_wr=3
+    anz_wr=1
     # Name der Tabelle
     tabelle=log
     # root Password
-    rootpw=rootpassword
+    rootpw=DlhmKisg!
 
 #    ##############################################
 #    ######### MYSQL Root PW ######################

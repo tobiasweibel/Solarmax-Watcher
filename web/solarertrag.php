@@ -88,7 +88,7 @@
 	include 'solarertrag_day_predictions.php';
 
 	// Connect to mysql database
-	@mysql_connect('localhost', 'user', 'password') or die(mysql_error());
+	@mysql_connect('localhost', 'solaruser', 'userpassword') or die(mysql_error());
 	@mysql_select_db('solarmax') or die(mysql_error());
 
 	// Check which view to use and define start and end limits
@@ -307,7 +307,7 @@
 
 								window.setTimeout("refreshDiagram()", 60000);
 
-								function changeDate(var day, var month, var year) {
+								function changeDate(day, month, year) {
                   // Get values out of input fields
 									var dayField = parseInt(document.forms.visualizer.day.value, 10);
 									var monthField = parseInt(document.forms.visualizer.month.value, 10);
