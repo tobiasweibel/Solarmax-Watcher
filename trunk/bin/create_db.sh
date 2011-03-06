@@ -17,7 +17,7 @@
     # Name der Tabelle
     tabelle=log
     # root Password
-    rootpw=DlhmKisg!
+    rootpw="rootpassword"
 
 #    ##############################################
 #    ######### MYSQL Root PW ######################
