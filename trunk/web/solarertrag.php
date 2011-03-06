@@ -226,19 +226,19 @@
 						<td><input type="radio" name="period" value="year" onclick="refreshDiagram()" <?php if ($period == 'year') echo "checked=\"checked\""; ?>> <?php echo ${text14.$lang}; ?></td>
 						<td><input type="submit" name="period" value="<?php echo ${text15.$lang}; ?>" onclick="setActualDate()"></td>
 						<td>
-							<input type="button" style="width:22px" onclick="decreaseDay()" value="<">
+							<input type="button" style="width:22px" onclick="changeDate(-1, 0, 0)" value="<">
 							<input name="day" type="text" size="2" maxlength="2" value="<?php echo $day; ?>">
-							<input type="button" style="width:22px" onclick="increaseDay()" value=">">
+							<input type="button" style="width:22px" onclick="changeDate(1, 0, 0)" value=">">
 						</td>
 						<td>
-							<input type="button" style="width:22px" onclick="decreaseMonth()" value="<">
+							<input type="button" style="width:22px" onclick="changeDate(0, -1, 0)" value="<">
 							<input name="month" type="text" size="2" maxlength="2" value="<?php echo $month; ?>">
-							<input type="button" style="width:22px" onclick="increaseMonth()" value=">">
+							<input type="button" style="width:22px" onclick="changeDate(0, 1, 0)" value=">">
 						</td>
 						<td>
-							<input type="button" style="width:22px" onclick="decreaseYear()" value="<">
+							<input type="button" style="width:22px" onclick="changeDate(0, 0, -1)" value="<">
 							<input name="year" type="text" size="4" maxlength="4" value="<?php echo $year; ?>">
-							<input type="button" style="width:22px" onclick="increaseYear()" value=">">
+							<input type="button" style="width:22px" onclick="changeDate(0, 0, 1)" value=">">
 						</td>
 						<td>
 							<input type="submit" value="Go">
@@ -307,82 +307,38 @@
 
 								window.setTimeout("refreshDiagram()", 60000);
 
-								function checkDate(day, month, year) {
-									var daysOfMonth = new Array(31, 30, 31, 28, 31, 30, 31, 31, 30, 31, 30, 31);
-									if ((year % 4 == 0) && (month == 4))
-										return day > 0 && day < 30 && month > 0 && month < 13 && year > 0 && year < 32000;
-									else
-										return year > 0 && year < 10000 && month > 0 && month < 13 && day > 0 && day <= daysOfMonth[month - 1];
-								}
+								function changeDate(var day, var month, var year) {
+                  // Get values out of input fields
+									var dayField = parseInt(document.forms.visualizer.day.value, 10);
+									var monthField = parseInt(document.forms.visualizer.month.value, 10);
+									var yearField = parseInt(document.forms.visualizer.year.value, 10);
 
-								function decreaseDay() {
-									var day = parseInt(document.forms.visualizer.day.value, 10) - 1;
-									if (day < 1) day = 31;
-									var month = parseInt(document.forms.visualizer.month.value, 10);
-									var year = parseInt(document.forms.visualizer.year.value, 10);
-									while (!checkDate(day, month, year))
-										day--;
-									document.forms.visualizer.day.value = day;
+                  // Create a new Date object for date validation
+									var date = new Date();
+
+                  // Set date and update in one step
+                  date.setFullYear(yearField + year);
+                  date.setMonth(monthField + month - 1);
+                  date.setDate(dayField + day);
+
+                  // Update input fields
+                  document.forms.visualizer.year.value = date.getFullYear();
+                  document.forms.visualizer.month.value = date.getMonth() + 1;
+                  document.forms.visualizer.day.value = date.getDate();
+
 									document.forms.visualizer.submit();
 								}
 
-								function increaseDay() {
-									var day = parseInt(document.forms.visualizer.day.value, 10) + 1;
-									if (day > 31) day = 1;
-									var month = parseInt(document.forms.visualizer.month.value, 10);
-									var year = parseInt(document.forms.visualizer.year.value, 10);
-									while (!checkDate(day, month, year))
-										day = (day % 31) + 1;
-									document.forms.visualizer.day.value = day;
-									document.forms.visualizer.submit();
-								}
+                function setActualDate() {
+                  var date = new Date();
 
-								function decreaseMonth() {
-									var day = parseInt(document.forms.visualizer.day.value, 10);
-									var month = parseInt(document.forms.visualizer.month.value, 10) - 1;
-									if (month < 1) month = 12;
-									var year = parseInt(document.forms.visualizer.year.value, 10);
-									document.forms.visualizer.month.value = month;
-									document.forms.visualizer.submit();
-								}
+                  // Update input fields
+                  document.forms.visualizer.year.value = date.getFullYear();
+                  document.forms.visualizer.month.value = date.getMonth() + 1;
+                  document.forms.visualizer.day.value = date.getDate();
 
-								function increaseMonth() {
-									var day = parseInt(document.forms.visualizer.day.value, 10);
-									var month = parseInt(document.forms.visualizer.month.value, 10) + 1;
-									if (month > 12) month = 1;
-									var year = parseInt(document.forms.visualizer.year.value, 10);
-									document.forms.visualizer.month.value = month;
 									document.forms.visualizer.submit();
-								}
-
-								function decreaseYear() {
-									var day = parseInt(document.forms.visualizer.day.value, 10);
-									var month = parseInt(document.forms.visualizer.month.value, 10);
-									var year = parseInt(document.forms.visualizer.year.value, 10) - 1;
-									if (year < 1) year = 9999;
-									document.forms.visualizer.year.value = year;
-									document.forms.visualizer.submit();
-								}
-
-								function increaseYear() {
-									var day = parseInt(document.forms.visualizer.day.value, 10);
-									var month = parseInt(document.forms.visualizer.month.value, 10);
-									var year = parseInt(document.forms.visualizer.year.value, 10) + 1;
-									if (year > 9999) year = 1;
-									document.forms.visualizer.year.value = year;
-									document.forms.visualizer.submit();
-								}
-
-								function setActualDate() {
-									var now = new Date();
-									var day = now.getDate();
-									var month = now.getMonth();
-									var year = now.getFullYear();
-									document.forms.visualizer.day.value = day;
-									document.forms.visualizer.month.value = month + 1;
-									document.forms.visualizer.year.value = year;
-									document.forms.visualizer.submit();
-								}
+                }
 							--></script>
 						</div>
 						<div id="footer">
