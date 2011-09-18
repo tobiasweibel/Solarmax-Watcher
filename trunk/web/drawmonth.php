@@ -83,9 +83,9 @@
 			$factor = $height/50*$pred_month;
 			$totalkwh = $totalkwh + $kwh*0.1;
 			if ($lasttotalkwh == 0) {
-				imagesetpixel($image, $xpos, $height - $gap - $totalkwh, $black);
+				imagesetpixel($image, $xpos, $height - $gap + 22 - $totalkwh, $black);
 			} else {
-				imageline($image, $lastxpos - $px_per_day/2, ($height - $gap - $lasttotalkwh), $xpos + $px_per_day/2, ($height - $gap - $totalkwh), $black);
+				imageline($image, $lastxpos - $px_per_day/2, ($height - $gap + 22 - $lasttotalkwh), $xpos + $px_per_day/2, ($height - $gap + 22 - $totalkwh), $black);
 			}
 			$lasttotalkwh = $totalkwh;
 
