@@ -31,7 +31,7 @@
 		@mysql_select_db('solarmax') or die(mysql_error());
 
 		while($wr < $wrnum+1) {
-			${result.$wr} = @mysql_query("SELECT created, DAY(created) AS day, max(kdy) AS kdy FROM $table$wr GROUP BY DAYOFYEAR(created)") or die(mysql_error());
+			${result.$wr} = @mysql_query("SELECT created, DAY(created) AS day, max(kdy) AS kdy FROM $table$wr GROUP BY DATE(created)") or die(mysql_error());
 			echo "created;kdy_".$wr."\n";
 			if (mysql_num_rows(${result.$wr}) == 0) {
 				// No data...create dummy line
