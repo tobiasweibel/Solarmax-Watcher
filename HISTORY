@@ -5,9 +5,13 @@
 The initial release for versioning und logging of changes starts with v0.1.0
 
 Bug fixes, new features und updates for:
+Version 0.4.0
+-new		: logger- added options for error/debug file in Config file
+					- added option for averaging interval
+					- now currents, voltages, power, grid frequency and inverter temperature are averaged
 
 Version 0.3.0
-- fix    : logger - debug-LogFile now only apears if 'debug=1' is set in Conf-File
+- fix		: logger - debug-LogFile now only apears if 'debug=1' is set in Conf-File
 - fix		: Web - now the variables maxtkk, maxudc, maxkdy in drawday.php take an effect
 - fix		: Web - NL-translation
 - new		: logger - log-files will remain for one restart period, for control options 
@@ -32,7 +36,7 @@ Version 0.2.3
 - new		: installer - Note in case of non-localhost Mysql server
 - new		: installer - Requirements are now shown at the beginning of the install procedure
 - new		: installer - Mysql server on other machines than 'localhost' is accepted
-- new 	: installer - Generation of an uninstaller-script during runtime of installer
+- new		: installer - Generation of an uninstaller-script during runtime of installer
 - new		: php-web - added analyzer.php
 			This script feeds parts of the collected data to Stephan Collets
 			"SolarAnalyzer" program with which you can compare your solar array

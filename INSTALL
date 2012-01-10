@@ -81,7 +81,7 @@ Change the following settings in the mentioned php-files:
   4. The colors of the graphs are quite ugly? Look at 'colors.php' and enter your favorite HTML color values.
   5. In 'sitehead.php' you can change the title, the subtitle and the associated links of the page.
   6. At least you should change $maxpac in 'drawday.php' to a value which is a little bit higher than the kWp of your photovoltaic system.
-  7. The remuneration for my PV system is 0,3405 EUR per kWh. If your milage varies change it in 'solarertrag.php' end of line 183.
+  7. The remuneration for my PV system is 0,3405 EUR per kWh. If your milage varies change it in 'solarertrag.php' end of line 297.
 
 
 Usage

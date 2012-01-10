@@ -1,8 +1,10 @@
 <?php
 	/*
-	Simple solarmax visualizer php program written by zagibu@gmx.ch in July 2010
+	Simple solarmax visualizer php program written by zagibu <zagibu@gmx.ch> in July 2010
 	This program was originally licensed under WTFPL 2 http://sam.zoy.org/wtfpl/
-	Improvements by Frank Lassowski flassowski@gmx.de in August 2010
+	Improvements by Frank Lassowski <flassowski@gmx.de> in August 2010
+	Further improvements by sleepprogger <wwrStuff@gmx.de> in January 2012
+
 	This program is now licensed under GPLv2 or later http://www.gnu.org/licenses/gpl2.html
 
 	To run this program your server must have PHP and the gd extension enabled.
