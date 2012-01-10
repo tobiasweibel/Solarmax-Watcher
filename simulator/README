@@ -1,0 +1,19 @@
+This is a simple set of shell scripts which will "simulate" a Sputnik Inverter.
+In "double quotes", because it its very simplified:
+- Will wait on any incoming bytes 
+- Won't do any check on these
+
+It no longer uses a static but a checked response with randomized values for some of the params.
+The montage and the check (length, checksum) of the message is done by chksum_smw.
+You have to compile this program first by typing
+
+gcc -o chksum_smw chksum_smw.c
+
+in this directory.
+
+Syntax:
+./netcat_sputnik <port-to-use>
+
+The example smw-logger.conf in this directory can be used with
+./netcat_sputnik 12345
+
