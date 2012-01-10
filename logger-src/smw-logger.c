@@ -5,13 +5,13 @@
 
 	You need the mysql client library files installed to be able to compile it.
 
-   Compile with: gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o smw-logger smw-logger.c -lmysqlclient
+	Compile with: gcc -W -Wall -Wextra -Wshadow -Wlong-long -Wformat -Wpointer-arith -rdynamic -pedantic-errors -std=c99 -o smw-logger smw-logger.c -lmysqlclient
 
-   Run with: ./smw-logger /path/to/config-file
+	Run with: ./smw-logger /path/to/config-file
 
-   Structure of the config-file:
+	Structure of the config-file:
 
-   Debug=0
+	Debug=0
 	Loginterval=60
 	Waitinterval=200
 	DBhost=localhost
@@ -60,16 +60,17 @@
 #include <pthread.h>
 
 FILE* error_file = NULL;
-char* error_file_name = "/var/log/solarmax-error.log";
+char error_file_name[512];
 char* error_mode = "w";
 FILE* debug_file = NULL;
-char* debug_file_name = "/var/log/solarmax-debug.log";
+char debug_file_name[512];
 char* debug_mode = "w";
 FILE* config_file = NULL;
 char* config_file_name;
 char* config_mode = "r";
-int sockfd, portno, n, log_interval, result, counter, wait_interval, active_max, nr_of_maxes, DEBUG;
-int lost_connection = 0;
+int sockfd, portno, n, log_interval, logavg_interval, result, counter, wait_interval, active_max, nr_of_maxes, DEBUG;
+// Renamed this flag because it is used for connection and regexp problems
+int failure_flag = 0;
 struct sockaddr_in serv_addr;
 struct hostent* server;
 char dbhost[512];
@@ -88,6 +89,8 @@ char* temp;
 regex_t rx;
 regmatch_t* matches;
 MYSQL* connection = NULL;
+// average stuff vars
+int i;
 
 void error_exit(const char* msg) {
 	perror(msg);
@@ -129,26 +132,25 @@ void set_nonblock(int sock) {
 }
 
 int main(int argc, char *argv[]) {
+	// Hold the time to wait between single requests.
+	//int logavg_interval = 5;
+
 	// Check commandline arguments
 	if (argc < 2)
 		error_exit("ERROR program needs config-file as parameter");
- 
-	// Try to open error log file
-	if ((error_file = fopen(error_file_name, error_mode)) == NULL)
-		error_exit("ERROR opening error.log file");
 
-	// Make file unbuffered
-	setbuf(error_file, NULL);
-
-   //Read Config File
-   config_file_name = argv[1];
+	//Read Config File
+	config_file_name = argv[1];
 	FILE *fp = fopen(config_file_name, config_mode);
 
 	// Read variables
 	if (fp) {
 		while (fgets(line, sizeof(line), fp)) {
 			sscanf(line, "Debug=%d[^\n]", &DEBUG);
+			sscanf(line, "Errorfile=%[^\n]", error_file_name);
+			sscanf(line, "Debugfile=%[^\n]", debug_file_name);
 			sscanf(line, "Loginterval=%d[^\n]", &log_interval);
+			sscanf(line, "Logavginterval=%d[^\n]", &logavg_interval);
 			sscanf(line, "Waitinterval=%d[^\n]", &wait_interval);
 			sscanf(line, "DBhost=%[^\n]", dbhost);
 			sscanf(line, "DBname=%[^\n]", dbname);
@@ -162,6 +164,19 @@ int main(int argc, char *argv[]) {
 	}
 	fclose(fp);
 
+	// Try to open error log file
+	if ((error_file = fopen(error_file_name, error_mode)) == NULL)
+		error_exit("ERROR opening error.log file");
+
+	// Make file unbuffered
+	setbuf(error_file, NULL);
+
+	// create the arrays for the average calculation
+	long tkdy[nr_of_maxes], tkmt[nr_of_maxes], tkyr[nr_of_maxes], tkt0[nr_of_maxes], ttnf[nr_of_maxes], ttkk[nr_of_maxes], tpac[nr_of_maxes], tprl[nr_of_maxes], til1[nr_of_maxes], tidc[nr_of_maxes], tul1[nr_of_maxes], tudc[nr_of_maxes], tsys[nr_of_maxes];
+	// calculate the requests per log_interval
+	// TODO -2 is a dirty fix to avoid desync
+	int logavg_pertick = (int)((log_interval-2)/logavg_interval);
+
 	// Try to open debug log file, if necessary
 	if(DEBUG) {
 		if((debug_file = fopen(debug_file_name, debug_mode)) == NULL)
@@ -169,7 +184,7 @@ int main(int argc, char *argv[]) {
 
 		// Make file unbuffered
 		setbuf(debug_file, NULL);
-   }   
+   }
 
 	// Try to compile regular expression
 	result = regcomp(&rx, expression, REG_EXTENDED);
@@ -198,11 +213,12 @@ int main(int argc, char *argv[]) {
 	while (1) {
 
 		// set variable to default value or it will keep trying to reconnect
-		lost_connection = 0;
+		failure_flag = 0;
 
 		// Check if connection to db-server must be re-established
 		if (mysql_ping(connection)) {
 
+			//TODO Maybe a reconnect (if needed) here ?
 			// Connect to database
 			if (!mysql_real_connect(connection, dbhost, dbuser, dbpass, dbname, 0, NULL, 0))
 				error_exit(mysql_error(connection));
@@ -253,167 +269,215 @@ int main(int argc, char *argv[]) {
 
 		// Start sending the data requests and logging the answers
 		while (1) {
- 
- 			// We have to get out of this while-loop to reestablish the connection to the inverter
-			if (lost_connection){
-                 debug_entry("Looks like we lost our connection to solarmax, reconnecting...");
-                 break;
-            }
-             
-			// Get the current time
 			time_t start_time = time(NULL);
-
-			for(active_max = 1; active_max <= nr_of_maxes; active_max++){
-
-				// Generate message according to device address of solarmax:
-   
-				// Could be something like this:
-				// sprintf(message, "{FB;0%d;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|%s}", active_max, 16_bit_checksum
-				// For further information on the protocol refer to: http://blog.dest-unreach.be/2009/04/15/solarmax-maxtalk-protocol-reverse-engineered
-
-				// Until someone comes up with a nice solution to calculate the checksum, lets stick to a few precalculated message strings (tested only for 2 maxes!):
-				if (active_max == 1) {
-					message = "{FB;01;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|1199}";
-				}
-				else if (active_max == 2) {
-					message = "{FB;02;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119A}";
-				}
-				else if (active_max == 3) {
-					message = "{FB;03;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119B}";
-				}
-				else if (active_max == 4) {
-					message = "{FB;04;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119C}";
-				}
-				else if (active_max == 5) {
-					message = "{FB;05;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119D}";
-				}
-				else if (active_max == 6) {
-					message = "{FB;06;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119E}";
-				}
-				else if (active_max == 7) {
-					message = "{FB;07;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119F}";
-				}
-				else if (active_max == 8) {
-					message = "{FB;08;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|11A0}";
-				}
-				else if (active_max == 9) {
-					message = "{FB;09;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|11A1}";
-				}
-				else {
-					error_exit("ERROR invalid hardware address; currently works only for 9 maxes");   
-				}
-
-				if (DEBUG) {
-					sprintf(buffer, "Sending message: %s", message);
-					debug_entry(buffer);
-				}
-
-				// Send message
-				n = write(sockfd,message,strlen(message));
-				if (n < 0) {
-					close(sockfd);
-					error_retry("ERROR sending TCP packet");
-					lost_connection = 1;
-					break;
-				}
-
-				// Read answer
-				bzero(buffer, 256);
-				n = read(sockfd, buffer, 255);
-				for (counter = 0; counter < wait_interval && n < 0; counter++) {
-					if (DEBUG)
-						debug_entry("Socket contains no data, trying to read again later");
-					usleep(10000);
-					n = read(sockfd, buffer, 255);
-				}
-
-				if (n < 0) {
-					close(sockfd);
-					error_retry("ERROR receiving TCP packet");
-					lost_connection = 1;
-					break;
-				}
-
-				if (DEBUG) {
-					sprintf(buffer2, "Received answer: %s", buffer);
-					debug_entry(buffer2);
-				}
-
-				// Extract the data fields from answer
-				result = regexec(&rx, buffer, rx.re_nsub + 1, matches, 0);
-				if (result) {
-					regerror(result, &rx, buffer, sizeof(buffer));
-					//error_exit("ERROR no regexp match");
-					error_retry("ERROR no regexp match");
-					lost_connection = 1;
-					break;
-				}
-
-				// Convert the extracted data fields to integer values
-				temp = strndup(buffer + matches[1].rm_so, matches[1].rm_eo - matches[1].rm_so);
-				kdy = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[2].rm_so, matches[2].rm_eo - matches[2].rm_so);
-				kmt = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[3].rm_so, matches[3].rm_eo - matches[3].rm_so);
-				kyr = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[4].rm_so, matches[4].rm_eo - matches[4].rm_so);
-				kt0 = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[5].rm_so, matches[5].rm_eo - matches[5].rm_so);
-				tnf = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[6].rm_so, matches[6].rm_eo - matches[6].rm_so);
-				tkk = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[7].rm_so, matches[7].rm_eo - matches[7].rm_so);
-				pac = strtol(temp, NULL, 16) / 2;
-				free(temp);
-				temp = strndup(buffer + matches[8].rm_so, matches[8].rm_eo - matches[8].rm_so);
-				prl = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[9].rm_so, matches[9].rm_eo - matches[9].rm_so);
-				il1 = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[10].rm_so, matches[10].rm_eo - matches[10].rm_so);
-				idc = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[11].rm_so, matches[11].rm_eo - matches[11].rm_so);
-				ul1 = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[12].rm_so, matches[12].rm_eo - matches[12].rm_so);
-				udc = strtol(temp, NULL, 16);
-				free(temp);
-				temp = strndup(buffer + matches[13].rm_so, matches[13].rm_eo - matches[13].rm_so);
-				sys = strtol(temp, NULL, 16);
-				free(temp);
-
-				// Construct the query according to active solarmax
-				sprintf(query, "INSERT INTO %s%d (kdy, kmt, kyr, kt0, tnf, tkk, pac, prl, il1, idc, ul1, udc, sys) VALUES (%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d);", dbtabprefix, active_max, kdy, kmt, kyr, kt0, tnf, tkk, pac, prl, il1, idc, ul1, udc, sys);
-
-				if (DEBUG) {
-					sprintf(buffer, "Executing query: %s", query);
-					debug_entry(buffer);
-				}
-
-				// Execute the query to write the data into db
-				mysql_query(connection, query);
-				if (mysql_errno(connection))
-					error_exit(mysql_error(connection));
+			for (i = 0; i < nr_of_maxes; ++i) {
+				tkdy[i] = tkmt[i] = tkyr[i] = tkt0[i] = ttnf[i] = ttkk[i] = tpac[i] = tprl[i] = til1[i] = tidc[i] = tul1[i] = tudc[i] = tsys[i] = 0;
 			}
 
 			// Get the current time
-			time_t stop_time = time(NULL);
+			for (i = 0; i < logavg_pertick; ++i) {
+				time_t single_start_time = time(NULL);
+				// We have to get out of this while-loop to reestablish the connection to the inverter
+				if (failure_flag == 1){
+					 debug_entry("Looks like we lost our connection to solarmax, reconnecting...");
+					 break;
+				}
+
+
+				for(active_max = 1; active_max <= nr_of_maxes; active_max++){
+
+					// Generate message according to device address of solarmax:
+
+					// Could be something like this:
+					// sprintf(message, "{FB;0%d;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|%s}", active_max, 16_bit_checksum
+					// For further information on the protocol refer to: http://blog.dest-unreach.be/2009/04/15/solarmax-maxtalk-protocol-reverse-engineered
+
+					// Until someone comes up with a nice solution to calculate the checksum, lets stick to a few precalculated message strings (tested only for 2 maxes!):
+					if (active_max == 1) {
+						message = "{FB;01;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|1199}";
+					}
+					else if (active_max == 2) {
+						message = "{FB;02;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119A}";
+					}
+					else if (active_max == 3) {
+						message = "{FB;03;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119B}";
+					}
+					else if (active_max == 4) {
+						message = "{FB;04;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119C}";
+					}
+					else if (active_max == 5) {
+						message = "{FB;05;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119D}";
+					}
+					else if (active_max == 6) {
+						message = "{FB;06;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119E}";
+					}
+					else if (active_max == 7) {
+						message = "{FB;07;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|119F}";
+					}
+					else if (active_max == 8) {
+						message = "{FB;08;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|11A0}";
+					}
+					else if (active_max == 9) {
+						message = "{FB;09;46|64:KDY;KMT;KYR;KT0;TNF;TKK;PAC;PRL;IL1;IDC;UL1;UDC;SYS|11A1}";
+					}
+					else {
+						error_exit("ERROR invalid hardware address; currently works only for 9 maxes");
+					}
+
+					if (DEBUG) {
+						sprintf(buffer, "Sending message: %s", message);
+						debug_entry(buffer);
+					}
+
+					// Send message
+					n = write(sockfd,message,strlen(message));
+					if (n < 0) {
+						close(sockfd);
+						error_retry("ERROR sending TCP packet");
+						failure_flag = 1;
+						break;
+					}
+
+					// Read answer
+					bzero(buffer, 256);
+					n = read(sockfd, buffer, 255);
+					for (counter = 0; counter < wait_interval && n < 0; counter++) {
+						if (DEBUG)
+							debug_entry("Socket contains no data, trying to read again later");
+						usleep(10000);
+						n = read(sockfd, buffer, 255);
+					}
+
+					if (n < 0) {
+						close(sockfd);
+						error_retry("ERROR receiving TCP packet");
+						failure_flag = 1;
+						break;
+					}
+
+					if (DEBUG) {
+						sprintf(buffer2, "Received answer: %s", buffer);
+						debug_entry(buffer2);
+					}
+
+					// Extract the data fields from answer
+					result = regexec(&rx, buffer, rx.re_nsub + 1, matches, 0);
+					if (result) {
+						regerror(result, &rx, buffer, sizeof(buffer));
+						//error_exit("ERROR no regexp match");
+						error_retry("ERROR no regexp match");
+						// TODO Create flag for this kind of failure or rename this one
+						failure_flag = 2;
+						break;
+					}
+
+					// Convert the extracted data fields to integer values
+					temp = strndup(buffer + matches[1].rm_so, matches[1].rm_eo - matches[1].rm_so);
+//					tkdy[active_max-1] += strtol(temp, NULL, 16);
+					kdy = strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[2].rm_so, matches[2].rm_eo - matches[2].rm_so);
+//					tkmt[active_max-1] += strtol(temp, NULL, 16);
+					kmt = strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[3].rm_so, matches[3].rm_eo - matches[3].rm_so);
+//					tkyr[active_max-1] += strtol(temp, NULL, 16);
+					kyr = strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[4].rm_so, matches[4].rm_eo - matches[4].rm_so);
+//					tkt0[active_max-1] += strtol(temp, NULL, 16);
+					kt0 = strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[5].rm_so, matches[5].rm_eo - matches[5].rm_so);
+					ttnf[active_max-1] += strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[6].rm_so, matches[6].rm_eo - matches[6].rm_so);
+					ttkk[active_max-1] += strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[7].rm_so, matches[7].rm_eo - matches[7].rm_so);
+					tpac[active_max-1] += strtol(temp, NULL, 16) / 2;
+					free(temp);
+					temp = strndup(buffer + matches[8].rm_so, matches[8].rm_eo - matches[8].rm_so);
+					tprl[active_max-1] += strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[9].rm_so, matches[9].rm_eo - matches[9].rm_so);
+					til1[active_max-1] += strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[10].rm_so, matches[10].rm_eo - matches[10].rm_so);
+					tidc[active_max-1] += strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[11].rm_so, matches[11].rm_eo - matches[11].rm_so);
+					tul1[active_max-1] += strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[12].rm_so, matches[12].rm_eo - matches[12].rm_so);
+					tudc[active_max-1] += strtol(temp, NULL, 16);
+					free(temp);
+					temp = strndup(buffer + matches[13].rm_so, matches[13].rm_eo - matches[13].rm_so);
+//					tsys[active_max-1] += strtol(temp, NULL, 16);
+					sys = strtol(temp, NULL, 16);
+					free(temp);
+				}
+				if (failure_flag > 0){
+					 break;
+				}
+				//TODO check if the task need more time than logavg_interval
+				sleep(logavg_interval - (time(NULL)-single_start_time));
+			}
+			// Calculate the average values and insert into db
+			if (failure_flag == 0){
+				for (i = 0; i < nr_of_maxes; ++i) {
+//					tkdy[i] = (int)((tkdy[i]*1.0)/(logavg_pertick*1.0));
+//					tkmt[i] = (int)((tkmt[i]*1.0)/(logavg_pertick*1.0));
+//					tkyr[i] = (int)((tkyr[i]*1.0)/(logavg_pertick*1.0));
+//					tkt0[i] = (int)((tkt0[i]*1.0)/(logavg_pertick*1.0));
+					ttnf[i] = (int)((ttnf[i]*1.0)/(logavg_pertick*1.0));
+					ttkk[i] = (int)((ttkk[i]*1.0)/(logavg_pertick*1.0));
+					tpac[i] = (int)((tpac[i]*1.0)/(logavg_pertick*1.0));
+					tprl[i] = (int)((tprl[i]*1.0)/(logavg_pertick*1.0));
+					til1[i] = (int)((til1[i]*1.0)/(logavg_pertick*1.0));
+					tidc[i] = (int)((tidc[i]*1.0)/(logavg_pertick*1.0));
+					tul1[i] = (int)((tul1[i]*1.0)/(logavg_pertick*1.0));
+					tudc[i] = (int)((tudc[i]*1.0)/(logavg_pertick*1.0));
+//					tsys[i] = (int)((tsys[i]*1.0)/(logavg_pertick*1.0));
+
+					// Construct the query according to active solarmax
+					sprintf(query, "INSERT INTO %s%d (kdy, kmt, kyr, kt0, tnf, tkk, pac, prl, il1, idc, ul1, udc, sys) VALUES (%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d);", dbtabprefix, (i+1), kdy, kmt, kyr, kt0, (int)ttnf[i], (int)ttkk[i], (int)tpac[i], (int)tprl[i], (int)til1[i], (int)tidc[i], (int)tul1[i], (int)tudc[i], sys);
+					if (DEBUG) {
+						sprintf(buffer, "Executing query: %s", query);
+						debug_entry(buffer);
+					}
+					// Execute the query to write the data into db
+					mysql_query(connection, query);
+					if (mysql_errno(connection))
+						error_exit(mysql_error(connection));
+				}
+
+			}
 
 			// Wait for the specified number of seconds - calc duration - 1
 			if (DEBUG)
 				debug_entry("Waiting for about 1 minute ...");
-			sleep(log_interval + start_time - stop_time - 1);
+			// Get the current time
+			time_t stop_time = time(NULL);
+			// TODO check if time needed is > log_interval
+			int sleepTime = log_interval + start_time - stop_time - 1;
+			if(sleepTime > 0)
+				sleep(sleepTime);
+			else{
+				sprintf(buffer, "!!! sleepTime error. Assuming desync: %i seconds. !!!\n", sleepTime);
+				debug_entry(buffer);
+			}
+
 
 			// Add a busy-loop for the last second to make sure we are perfectly accurate
 			while (time(NULL) < start_time + log_interval) usleep(99999);
+
+			// If the connection is lost -> retry
+			if (failure_flag == 1){
+				// just to be sure
+				close(sockfd);
+				break;
+			}
 		}
 	}
 	return 0;
