@@ -201,9 +201,9 @@
 <html>
 	<head>
 		<title>Solarmax Watcher</title>
-		<meta name="generator" content="Bluefish 1.0.7">
+		<meta name="generator" content="Bluefish 2.0.1" >
 		<meta name="copyright" content="Frank Lassowski">
-		<meta name="date" content="2010-12-27T20:59:54+0100">
+		<meta name="date" content="2012-01-12T02:59:47+0100" >
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 		<meta http-equiv="expires" content="0">
 		<link rel="stylesheet" type="text/css" href="solarertrag.css">
@@ -234,7 +234,7 @@
 				request.open("GET", "WebRequest.php?secret=WeDoNotWantBotsInHereWhichWouldResultInALargeAmountOfRequests", false);
 				request.send(null);
 				var footerTag = document.getElementById('footerp');
-				footerTag.innerHTML == request.responseText;
+				footerTag.innerHTML = request.responseText;
 			}
 		</script>
 	</head>
@@ -373,7 +373,7 @@
 							--></script>
 						</div>
 						<div id="footer">
-							<p><b id=footerp><a href="WebRequest.php?secret=WeDoNotWantBotsInHereWhichWouldResultInALargeAmountOfRequests&bla=1">Updates ?</a></b>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;<a href="https://sourceforge.net/projects/solarmaxwatcher/">Solarmax Watcher at Sourceforge</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; <a href="http://URL/to/your/impressum">Impressum</a> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; Design by <a href="mailto:info.lassowski.dyndns.org@arcor.de?subject=SolarMax Watcher">Frank Lassowski</a></p>
+							<p><span id=footerp><a href="WebRequest.php?secret=WeDoNotWantBotsInHereWhichWouldResultInALargeAmountOfRequests&bla=1">Updates ?</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;</span><a href="https://sourceforge.net/projects/solarmaxwatcher/">Solarmax Watcher at Sourceforge</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; <a href="http://URL/to/your/impressum">Impressum</a> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; Design by <a href="mailto:info.lassowski.dyndns.org@arcor.de?subject=SolarMax Watcher">Frank Lassowski</a></p>
 						</div>
 					</body>
 				</html>
