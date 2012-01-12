@@ -58,6 +58,8 @@
 	//echo $newHash;
 	// Print the result
 	if($lastHash != $newHash){
-		echo '<b>New version <a href="http://sourceforge.net/projects/solarmaxwatcher/files/latest/download?source=files">available</a></b>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;';
+		echo '<b>New version <a href="http://sourceforge.net/projects/solarmaxwatcher/files/latest/download?source=files">available</a></b>';
+	}else{
+		if($_GET['bla']==1)echo 'Your version is up to date :)';
 	}
 ?>
