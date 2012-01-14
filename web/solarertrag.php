@@ -208,37 +208,8 @@
 		<meta http-equiv="expires" content="0">
 		<link rel="stylesheet" type="text/css" href="solarertrag.css">
 		<link rel="shortcut icon" href="img/sun.ico" type="image/x-icon">
-		<!-- TODO use proper script tag with version ;) -->
-		<script>
-			// Small ajaxRequest to check for new Version
-			function getXMLHttpObject(){
-				var xmlHttp;
-				try{
-				// Firefox, Opera 8.0+, Safari
-				xmlHttp=new XMLHttpRequest();
-				}catch (e){
-				// Internet Explorer
-				try{
-				xmlHttp=new ActiveXObject("Msxml2.XMLHTTP");
-				}catch (e){
-				try{
-				xmlHttp=new ActiveXObject("Microsoft.XMLHTTP");
-				}catch (e){
-				alert("Your browser does not support AJAX!");
-				return false;
-				}}}
-				return xmlHttp;
-			}
-			function checkForUpdate(){
-				var request = getXMLHttpObject();
-				request.open("GET", "WebRequest.php?secret=WeDoNotWantBotsInHereWhichWouldResultInALargeAmountOfRequests", false);
-				request.send(null);
-				var footerTag = document.getElementById('footerp');
-				footerTag.innerHTML = request.responseText;
-			}
-		</script>
 	</head>
-	<body onload="checkForUpdate()">
+	<body>
 		<div id="wrap">
 		<?php include 'sitehead.php'; // if you don't want to have a title image delete this line
 		?>
@@ -373,7 +344,7 @@
 							--></script>
 						</div>
 						<div id="footer">
-							<p><span id=footerp><a href="WebRequest.php?secret=WeDoNotWantBotsInHereWhichWouldResultInALargeAmountOfRequests&bla=1">Updates ?</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;</span><a href="https://sourceforge.net/projects/solarmaxwatcher/">Solarmax Watcher at Sourceforge</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; <a href="http://URL/to/your/impressum">Impressum</a> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; Design by <a href="mailto:info.lassowski.dyndns.org@arcor.de?subject=SolarMax Watcher">Frank Lassowski</a></p>
+							<p><?php include('WebRequest.php'); ?><a href="https://sourceforge.net/projects/solarmaxwatcher/">Solarmax Watcher at Sourceforge</a>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; <a href="http://URL/to/your/impressum">Impressum</a> &nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; Design by <a href="mailto:info.lassowski.dyndns.org@arcor.de?subject=SolarMax Watcher">Frank Lassowski</a></p>
 						</div>
 					</body>
 				</html>
