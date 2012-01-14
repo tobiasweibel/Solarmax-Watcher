@@ -36,7 +36,7 @@
 		file_put_contents($hashFile, getUpdateHash());
 		file_put_contents($lastCheckedForUpdateFile, date('dmY'));		
 		// who knows ...
-		unlink($updateAvailFile);
+		if(file_exists($updateAvailFile)) unlink ($updateAvailFile);
 	}
 
 	if(!file_exists(hashFile))
@@ -45,7 +45,7 @@
 	if(file_exists($updateAvailFile)){
 		echo '<b>New version <a href="http://sourceforge.net/projects/solarmaxwatcher/files/latest/download?source=files">available</a></b>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;';
 	}else if(file_get_contents($lastCheckedForUpdateFile) == date('dmY')){
-		if($_GET['bla']==1)echo 'Your version is up to date :)';
+		if($_GET['bla']==1) echo 'Your version is up to date :)';
 	}
 	// if there was no check today, do it now.
 	else{
@@ -54,7 +54,7 @@
 			file_put_contents($updateAvailFile, '');
 			echo '<b>New version <a href="http://sourceforge.net/projects/solarmaxwatcher/files/latest/download?source=files">available</a></b>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;';
 		}else{
-			if($_GET['bla']==1)echo 'Your version is up to date :)';
+			if($_GET['bla']==1) echo 'Your version is up to date :)';
 		}
 		file_put_contents($lastCheckedForUpdateFile, date('dmY'));
 	}
