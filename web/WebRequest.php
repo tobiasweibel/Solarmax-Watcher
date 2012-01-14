@@ -39,7 +39,7 @@
 		unlink($updateAvailFile);
 	}
 
-	if(!file_exists(hashFile)||$_GET['secret']!='WeDoNotWantBotsInHereWhichWouldResultInALargeAmountOfRequests')
+	if(!file_exists(hashFile))
 		die('');
 	
 	if(file_exists($updateAvailFile)){
