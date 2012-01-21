@@ -39,6 +39,8 @@
   - http://man.cx/setbuf%283%29
   - http://allfaq.org/forums/t/169895.aspx
   - http://dev.mysql.com/tech-resources/articles/mysql-capi-tutorial.html
+  - http://www.cis.temple.edu/~ingargio/old/cis307s96/readings/docs/ipc.html <- Broadcast infos
+  - http://www.linuxhowtos.org/C_C++/socket.htm <- Broadcast code parts
 */
 
 #define _GNU_SOURCE
@@ -58,6 +60,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <pthread.h>
+#include "UDP_Server.h"
 
 FILE* error_file = NULL;
 char error_file_name[512];
@@ -92,6 +95,10 @@ MYSQL* connection = NULL;
 // average stuff vars
 int i;
 
+// Server broadcast stuff
+struct sockaddr_in their_addr;
+int server_sock;
+
 void error_exit(const char* msg) {
 	perror(msg);
 	if (error_file != NULL)
@@ -110,6 +117,7 @@ void debug_entry(char* msg) {
 		error_exit("ERROR writing to debug.log file");
 	sprintf(debug_msg, "%s %s", time_now, msg);
 	fprintf(debug_file, "%s\n", debug_msg);
+	fprintf(stdout, "%s\n", debug_msg);
 }
 
 void error_retry(char* msg) {
@@ -121,6 +129,7 @@ void error_retry(char* msg) {
 		error_exit("ERROR writing to error.log file");
 	sprintf(error_msg, "%s %s", time_now, msg);
 	fprintf(error_file, "%s\n", error_msg);
+	fprintf(stderr, "%s\n", error_msg);
 }
 
 void set_nonblock(int sock) {
@@ -130,6 +139,7 @@ void set_nonblock(int sock) {
 		error_exit("ERROR no valid flags on socket");
 	fcntl(sock, F_SETFL, flags | O_NONBLOCK);
 }
+
 
 int main(int argc, char *argv[]) {
 	// Hold the time to wait between single requests.
@@ -209,6 +219,10 @@ int main(int argc, char *argv[]) {
 		sprintf(buffer, "Connected to database %s on host %s", dbname, dbhost);
 		debug_entry(buffer);
 	}
+
+	// Create the udp server socket stuff
+	if(createAddress("192.168.0.255", 4950, &their_addr) != 0)printf("error with address creation\n");
+	if(createSock(&server_sock) != 0)printf("error with socket creation\n");
 
 	while (1) {
 
@@ -360,6 +374,9 @@ int main(int argc, char *argv[]) {
 						debug_entry(buffer2);
 					}
 
+					// send the incoming results per udp
+					if(sendUDPMessage(&their_addr, server_sock, buffer) != 0)printf("error with sending message\n");
+
 					// Extract the data fields from answer
 					result = regexec(&rx, buffer, rx.re_nsub + 1, matches, 0);
 					if (result) {
@@ -482,3 +499,4 @@ int main(int argc, char *argv[]) {
 	}
 	return 0;
 }
+
