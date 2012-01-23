@@ -8,7 +8,7 @@ use IO::Socket::INET;
 # flush after every write
 $| = 1;
 
-my $regex = "{[^}]*KDY=([0-9]+)[^}]*PAC=([0-9]+)[^}]*}";
+my $regex = "{[^}]*KDY=([0-9A-Z]+)[^}]*PAC=([0-9A-Z]+)[^}]*}";
 my $localPort = "4950";
 my ($socket,$received_data);
 my ($peeraddress,$peerport);
