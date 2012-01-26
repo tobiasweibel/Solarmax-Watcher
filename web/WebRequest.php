@@ -1,4 +1,14 @@
-<?php
+<?
+/*
+* This file check for updates by calling the sourceforge api.
+* This script does nothing if there is no $lastCheckedForUpdateFile file.
+* To use this script create the ..UpdateFile or call this script with ?insert=insert
+*/
+
+$hashFile = 'hashFile';
+$updateAvailFile='update';
+$lastCheckedForUpdateFile='lastUpdateCheck';	// pls forgive me ;)
+
 	//Wez Furlong recently wrote the PHP5 version on his blog (titled HTTP POST from PHP, without cURL):
 	// Only with >= PHP5
 	function doGetRequest($url, $optional_headers = null)
@@ -27,35 +37,32 @@
 		return md5(preg_replace('%<pubDate>[a-zA-z0-9:,\+ ]+</pubDate>%', 'static', $dummy));
 	}
 
-	$hashFile = 'hashFile';
-	$updateAvailFile='update';
-	$lastCheckedForUpdateFile='lastUpdateCheck';	// pls forgive me ;)
 
 	// Create a new hash and lastCheckedForUpdate file
 	if($_GET['insert']=='insert'){
 		file_put_contents($hashFile, getUpdateHash());
 		file_put_contents($lastCheckedForUpdateFile, date('dmY'));		
-		// who knows ...
+		// clean up
 		if(file_exists($updateAvailFile)) unlink ($updateAvailFile);
 	}
 
-	if(!file_exists(hashFile))
-		die('');
-	
-	if(file_exists($updateAvailFile)){
-		echo '<b>New version <a href="http://sourceforge.net/projects/solarmaxwatcher/files/latest/download?source=files">available</a></b>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;';
-	}else if(file_get_contents($lastCheckedForUpdateFile) == date('dmY')){
-		if($_GET['bla']==1) echo 'Your version is up to date :)';
-	}
-	// if there was no check today, do it now.
-	else{
-		// there is a new udpate
-		if(file_get_contents($hashFile) != getUpdateHash()){
-			file_put_contents($updateAvailFile, '');
+	// only run if the lastCheckedForUpdateFile exists
+	if(file_exists($lastCheckedForUpdateFile)){
+		if(file_exists($updateAvailFile)){
 			echo '<b>New version <a href="http://sourceforge.net/projects/solarmaxwatcher/files/latest/download?source=files">available</a></b>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;';
-		}else{
+		}else if(file_get_contents($lastCheckedForUpdateFile) == date('dmY')){
 			if($_GET['bla']==1) echo 'Your version is up to date :)';
 		}
-		file_put_contents($lastCheckedForUpdateFile, date('dmY'));
+		// if there was no check today, do it now.
+		else{
+			// there is a new udpate
+			if(file_get_contents($hashFile) != getUpdateHash()){
+				file_put_contents($updateAvailFile, '');
+				echo '<b>New version <a href="http://sourceforge.net/projects/solarmaxwatcher/files/latest/download?source=files">available</a></b>&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp;';
+			}else{
+				if($_GET['bla']==1) echo 'Your version is up to date :)';
+			}
+			file_put_contents($lastCheckedForUpdateFile, date('dmY'));
+		}
 	}
 ?>
